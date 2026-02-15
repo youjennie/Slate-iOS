@@ -5,7 +5,8 @@ import PhotosUI
 // MARK: - [1] 설정 메인 뷰
 struct MySlateSettingsView: View {
     @Environment(\.dismiss) var dismiss
-    @ObservedObject var spaceManager = SpaceManager.shared // 전역 상태 참조
+    @Environment(\.modelContext) private var modelContext
+    @ObservedObject var spaceManager = SpaceManager.shared
     
     let slateWhite = Color(red: 183/255, green: 194/255, blue: 198/255)
     let slateGreen = Color(red: 186/255, green: 206/255, blue: 156/255)
@@ -18,7 +19,10 @@ struct MySlateSettingsView: View {
     @State private var showImagePicker = false
     @State private var profileImage: UIImage?
     @State private var notificationsEnabled = true
-    @State private var photoPrivacyEnabled = true // ⭐️ 누락되었던 상태값 복구
+    @State private var photoPrivacyEnabled = true
+    
+    // ── 계정 삭제 확인 다이얼로그 ──
+    @State private var showDeleteConfirmation = false
 
     private var initials: String {
         let name = spaceManager.userName.isEmpty ? "User" : spaceManager.userName
@@ -27,20 +31,17 @@ struct MySlateSettingsView: View {
 
     var body: some View {
         ZStack {
-            // [1] 배경 레이어 - 고정 배경 (틀어짐 방지용 ignoresSafeArea)
             Group {
                 Color(red: 0.98, green: 0.98, blue: 0.98)
                 Image("background_paper")
                     .resizable()
                     .scaledToFill()
-                    .frame(width: 393, height: 852) // ⭐️ 형님과 맞춘 아이폰 표준 규격
+                    .frame(width: 393, height: 852)
                     .opacity(0.4)
             }
             .ignoresSafeArea()
 
-            // [2] 콘텐츠 레이어 - 상단 헤더 고정 및 내부 패딩
             VStack(spacing: 0) {
-                // 커스텀 상단 헤더 (높이 60 고정하여 상단 짤림 방지)
                 HStack {
                     Button(action: { dismiss() }) {
                         Image(systemName: "chevron.left")
@@ -53,34 +54,36 @@ struct MySlateSettingsView: View {
                     Spacer()
                     Image(systemName: "chevron.left").opacity(0).padding(10)
                 }
-                .padding(.top,30)
+                .padding(.top, 30)
                 .frame(height: 90)
                 .background(Color.white.opacity(0.9))
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 40) {
-                        // 1. 프로필 헤더
                         profileHeaderSection
-                        
-                        // 2. 키워드 섹션
                         keywordSection
-                        
-                        // 3. 설정 리스트 (누락됐던 PRIVACY 포함)
                         settingListSection
-                        
-                        // 4. 푸터
                         footerSection
                     }
                     .padding(.top, 20)
-                    .padding(.bottom, 100) // ⭐️ 하단 공백 및 짤림 방지용 여유 공간
+                    .padding(.bottom, 100)
                 }
             }
         }
         .navigationBarHidden(true)
-        .toolbar(.hidden, for: .tabBar) // ⭐️ 이 한 줄이 하단바를 즉시 삭제합니다!
+        .toolbar(.hidden, for: .tabBar)
         .onAppear {
             editedName = spaceManager.userName
             editedBio = currentBio
+        }
+        // ── 계정 삭제 확인 Alert ──
+        .alert("Delete Account", isPresented: $showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete Everything", role: .destructive) {
+                performAccountDeletion()
+            }
+        } message: {
+            Text("This will permanently delete all your photos, spaces, and account data. This action cannot be undone.")
         }
     }
     
@@ -154,43 +157,67 @@ struct MySlateSettingsView: View {
                 settingRow(title: "Regenerate Future Image")
             }
 
-            // ⭐️ 형님이 찾으시던 PRIVACY 섹션 정확히 복구했습니다!
             settingGroup(title: "PRIVACY") {
                 settingToggleRow(title: "Photo Privacy", subtitle: "Only visible to you", isOn: $photoPrivacyEnabled)
-                settingRow(title: "Delete Account", isDestructive: true)
+                // ── 계정 삭제 → 확인 다이얼로그 연결 ──
+                Button(action: { showDeleteConfirmation = true }) {
+                    HStack {
+                        Text("Delete Account").font(.system(size: 16)).foregroundColor(.red)
+                        Spacer()
+                        Image(systemName: "chevron.right").font(.system(size: 14)).foregroundColor(.gray)
+                    }.padding(18)
+                }
             }
         }.padding(.horizontal, 25)
     }
 
     private var footerSection: some View {
-            VStack(spacing: 10) {
-                Button(action: {
-                    // ⭐️ 로그아웃 처리
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                        // 1. 로그인 상태 해제 -> SlateApp이 감지하여 OnboardingView로 즉시 전환
-                        spaceManager.isLoggedIn = false
-                        
-                        // 2. (선택) 로그아웃 시 유저 정보도 초기화하고 싶다면 주석 해제
-                        // spaceManager.userName = ""
-                    }
-                    
-                    // 햅틱 피드백 추가
-                    UINotificationFeedbackGenerator().notificationOccurred(.success)
-                }) {
-                    Text("Sign out")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.red)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 20)
-                    
+        VStack(spacing: 10) {
+            Button(action: {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                    spaceManager.logout()
                 }
-                .padding(.top, 20)
-                
-                Text("Slate v0.0.5")
-                    .font(.system(size: 12))
-                    .foregroundColor(.gray.opacity(0.4))
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+            }) {
+                Text("Sign out")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.red)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 20)
             }
+            .padding(.top, 20)
+            
+            Text("Slate v1.0.0")
+                .font(.system(size: 12))
+                .foregroundColor(.gray.opacity(0.4))
         }
+    }
+    
+    // ── 실제 계정 삭제 로직 ──
+    private func performAccountDeletion() {
+        // 1. SwiftData 전체 삭제
+        do {
+            let allRecords = try modelContext.fetch(FetchDescriptor<PhotoRecord>())
+            for record in allRecords {
+                modelContext.delete(record)
+            }
+            let allSpaces = try modelContext.fetch(FetchDescriptor<Space>())
+            for space in allSpaces {
+                modelContext.delete(space)
+            }
+            try modelContext.save()
+        } catch {
+            print("Account deletion error: \(error)")
+        }
+        
+        // 2. UserDefaults 전체 초기화
+        UserDefaults.standard.removeObject(forKey: "slate_joinDate")
+        
+        // 3. SpaceManager 초기화 + 로그아웃
+        spaceManager.deleteAccount()
+        
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+    }
 
     // --- 공통 부품 함수들 ---
     private func tagView(title: String, isInactive: Bool = false) -> some View {
@@ -228,7 +255,12 @@ struct MySlateSettingsView: View {
 
 // MARK: - Preview
 #Preview {
-    NavigationStack {
+    let schema = Schema([PhotoRecord.self, Space.self])
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: schema, configurations: [config])
+    
+    return NavigationStack {
         MySlateSettingsView()
+            .modelContainer(container)
     }
 }

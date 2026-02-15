@@ -6,7 +6,6 @@ struct MainTabView: View {
     @State private var isCameraPresented = false
     @StateObject private var spaceManager = SpaceManager.shared
     
-    // ⭐️ [수정 포인트 1] 함수의 닫는 중괄호를 정확히 추가했습니다.
     @ViewBuilder
     private func tabButton(icon: String, title: String, index: Int) -> some View {
         Button(action: { selectedTab = index }) {
@@ -19,7 +18,7 @@ struct MainTabView: View {
             .foregroundColor(selectedTab == index ? .black : .gray)
             .padding(.bottom, 10)
         }
-    } 
+    }
     
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -32,7 +31,7 @@ struct MainTabView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.bottom, 80) // 탭바 높이만큼 여백 확보
+            .padding(.bottom, 80)
             
             // 2. 커스텀 하단 바
             VStack(spacing: 0) {
@@ -41,7 +40,7 @@ struct MainTabView: View {
                 HStack(alignment: .bottom) {
                     tabButton(icon: "calendar", title: "Calendar", index: 0)
                     
-                    cameraButtonView // 중앙 카메라 버튼
+                    cameraButtonView
                     
                     tabButton(icon: "person.fill", title: "My Slate", index: 1)
                 }
@@ -49,7 +48,6 @@ struct MainTabView: View {
                 .frame(height: 70)
                 .background(Color.white)
             }
-            // 홈 인디케이터 공간을 위해 배경색만 바닥까지 채움
             .background(Color.white.ignoresSafeArea(edges: .bottom))
         }
         .fullScreenCover(isPresented: $isCameraPresented) {
@@ -77,7 +75,7 @@ struct MainTabView: View {
 
 // MARK: - [Preview]
 #Preview {
-    let schema = Schema([PhotoRecord.self])
+    let schema = Schema([PhotoRecord.self, Space.self])
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     
     do {

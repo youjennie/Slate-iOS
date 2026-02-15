@@ -13,12 +13,14 @@ struct MonthSummaryView: View {
     }
     
     var recordedDaysCount: Int {
-        let uniqueDays = Set(records.map { Calendar.current.startOfDay(for: $0.date) })
+        // ── isDeleted 필터링 추가 ──
+        let activeRecords = records.filter { !$0.isDeleted }
+        let uniqueDays = Set(activeRecords.map { Calendar.current.startOfDay(for: $0.date) })
         return uniqueDays.count
     }
 
     var body: some View {
-        VStack(spacing: 0) { // 메인 간격 0으로 정밀 조정
+        VStack(spacing: 0) {
             // (A) 로고 및 월 타이틀 섹션
             VStack(alignment: .leading, spacing: -60) {
                 Image("name_logo")
@@ -38,7 +40,7 @@ struct MonthSummaryView: View {
             Text("\(SpaceManager.shared.userName.isEmpty ? "My" : SpaceManager.shared.userName) Slate Moments")
                     .font(.system(size: 18))
                     .foregroundColor(.gray)
-                    .padding(.leading, 5) // 월 이름과 정렬을 맞추기 위한 미세 조정
+                    .padding(.leading, 5)
                     .offset(y: 20)
                     .padding(.bottom,20)
             
@@ -46,7 +48,10 @@ struct MonthSummaryView: View {
             LazyVGrid(columns: columns, spacing: 7) {
                 ForEach(1...daysInMonth, id: \.self) { day in
                     if let date = Calendar.current.date(byAdding: .day, value: day-1, to: month) {
-                        let record = records.first { Calendar.current.isDate($0.date, inSameDayAs: date) }
+                        // ── isDeleted 필터링 추가 ──
+                        let record = records.first {
+                            Calendar.current.isDate($0.date, inSameDayAs: date) && !$0.isDeleted
+                        }
                         SummaryCell(day: day, image: record?.imageData != nil ? UIImage(data: record!.imageData!) : nil)
                     }
                 }
@@ -55,7 +60,7 @@ struct MonthSummaryView: View {
             .padding(.top, 20)
             .padding(.bottom, 40)
 
-            // (C) 하단 데이터 정보 & 프로그레스 바 뭉치
+            // (C) 하단 데이터 정보 & 프로그레스 바
             VStack(spacing: 15) {
                 HStack(alignment: .lastTextBaseline, spacing: 5) {
                     Text("\(recordedDaysCount)")
@@ -67,7 +72,6 @@ struct MonthSummaryView: View {
                         .foregroundColor(.gray)
                 }
                 
-                // 커스텀 프로그레스 바
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         Capsule()
@@ -76,7 +80,7 @@ struct MonthSummaryView: View {
                         
                         Capsule()
                             .fill(Color(slateWhite))
-                            .frame(width: geo.size.width * CGFloat(recordedDaysCount) / CGFloat(daysInMonth), height: 12)
+                            .frame(width: geo.size.width * CGFloat(recordedDaysCount) / CGFloat(max(daysInMonth, 1)), height: 12)
                     }
                 }
                 .frame(height: 12)
@@ -89,7 +93,7 @@ struct MonthSummaryView: View {
     }
 }
 
-// 요약 카드용 작은 셀 (수정 없음)
+// 요약 카드용 작은 셀
 struct SummaryCell: View {
     let day: Int
     let image: UIImage?
@@ -120,12 +124,10 @@ struct SummaryCell: View {
 
 // MARK: - [Preview] MonthSummaryView
 #Preview {
-    // 프리뷰를 위한 샘플 기록 생성
     let today = Date()
     let calendar = Calendar.current
     let monthStart = calendar.date(from: calendar.dateComponents([.year, .month], from: today))!
     
-    // 1일, 3일, 5일에 기록이 있는 것처럼 더미 생성
     let sampleRecords = [
         PhotoRecord(date: monthStart, memo: "Day 1", spaceTag: "Daily"),
         PhotoRecord(date: calendar.date(byAdding: .day, value: 2, to: monthStart)!, memo: "Day 3", spaceTag: "Daily"),
@@ -137,5 +139,5 @@ struct SummaryCell: View {
         records: sampleRecords,
         category: "Daily"
     )
-    .background(Color.gray.opacity(0.1)) // 배경 구분을 위해 살짝 색상 추가
+    .background(Color.gray.opacity(0.1))
 }

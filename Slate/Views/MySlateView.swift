@@ -1,13 +1,22 @@
 import SwiftUI
+import SwiftData
 
 struct MySlateView: View {
     @Environment(\.dismiss) var dismiss
     @State private var isCameraPresented = false
     
+    // ── SwiftData에서 실시간 데이터 로딩 ──
+    @Query(sort: \PhotoRecord.date) private var allRecords: [PhotoRecord]
+    
     // 형님의 컨셉 컬러
     let slateWhite = Color(red: 183/255, green: 194/255, blue: 198/255)
     let slateGreen = Color(red: 186/255, green: 206/255, blue: 156/255)
     let cameraGreen = Color(red: 0.41, green: 0.81, blue: 0.44)
+    
+    // ── 실시간 계산 (하드코딩 제거) ──
+    private var progress: SlateProgress {
+        ProgressCalculator.calculate(from: allRecords)
+    }
 
     var body: some View {
         GeometryReader { proxy in
@@ -15,7 +24,7 @@ struct MySlateView: View {
             let screenHeight = proxy.size.height
             
             ZStack {
-                // [1] 배경 레이어 - 폰 규격 고정 및 짤림 방지
+                // [1] 배경 레이어
                 ZStack {
                     Color(red: 0.98, green: 0.98, blue: 0.98)
                     Image("background_paper")
@@ -29,18 +38,14 @@ struct MySlateView: View {
                 // [2] 콘텐츠 레이어
                 VStack(spacing: 0) {
                     
-                    // --- 상단 헤더 (하얗게 채움) ---
+                    // --- 상단 헤더 ---
                     HStack {
-                        // MySlateView 내부의 헤더 부분
-                        Button(action: {
-                            dismiss() // ⭐️ 현재 뷰를 스택에서 제거하고 이전 페이지로 돌아감
-                        }) {
+                        Button(action: { dismiss() }) {
                             Image(systemName: "chevron.left")
                                 .font(.system(size: 20, weight: .medium))
                                 .foregroundColor(.black)
                                 .padding(10)
-                                .contentShape(Rectangle()) // 터치 영역을 사각형으로 꽉 채워줌
-                        
+                                .contentShape(Rectangle())
                         }
                         
                         Spacer()
@@ -65,13 +70,13 @@ struct MySlateView: View {
 
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 50) {
-                            // 3. 로고 및 타이틀 (다닥다닥 밀착 버전)
+                            // 3. 로고 및 타이틀
                             VStack(spacing: 0) {
                                 Image("name_logo")
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 200)
-                                    .padding(.bottom, -60) // PNG 여백 강제 제거
+                                    .padding(.bottom, -60)
                                     .padding(.top, -10)
                                 
                                 Text("Your Future-Self Awaits")
@@ -87,15 +92,16 @@ struct MySlateView: View {
                             }
                             .padding(.top, 30)
 
-                            // 4. Before & After (플레이스홀더 포함)
+                            // 4. Before & After
                             HStack(spacing: 40) {
                                 comparisonCircle(imageName: "user_before", label: "Before")
                                 comparisonCircle(imageName: "ai_after", label: "After")
                             }
 
-                            // 5. 프로그레스 섹션
+                            // 5. 프로그레스 섹션 (실시간 계산)
                             VStack(spacing: 20) {
-                                Text("38% closer")
+                                // ── 실시간 계산된 Progress % ──
+                                Text("\(Int(progress.progressPercent))% closer")
                                     .font(.system(size: 22))
                                     .foregroundColor(.gray)
                                 
@@ -103,7 +109,9 @@ struct MySlateView: View {
                                     GeometryReader { geo in
                                         ZStack(alignment: .leading) {
                                             Capsule().fill(Color.black.opacity(0.05)).frame(height: 12)
-                                            Capsule().fill(slateWhite).frame(width: geo.size.width * 0.38, height: 12)
+                                            Capsule()
+                                                .fill(slateWhite)
+                                                .frame(width: geo.size.width * CGFloat(progress.progressPercent / 100.0), height: 12)
                                         }
                                     }
                                     .frame(height: 12)
@@ -115,9 +123,16 @@ struct MySlateView: View {
                                     }
                                 }
                                 .padding(.horizontal, 30)
+                                
+                                // ── Streak & Days 표시 ──
+                                HStack(spacing: 30) {
+                                    statBadge(value: "\(progress.totalDays)", label: "Days")
+                                    statBadge(value: "\(progress.currentStreak)", label: "Streak")
+                                    statBadge(value: "\(progress.longestStreak)", label: "Best")
+                                }
+                                .padding(.top, 10)
                             }
                             
-                            // ⭐️ 하단바 영역 확보를 위해 마지막에 여유 공간 추가
                             Spacer().frame(height: 50)
                         }
                     }
@@ -140,11 +155,29 @@ struct MySlateView: View {
             Text(label).font(.system(size: 14, weight: .medium)).foregroundColor(.gray)
         }
     }
+    
+    // 통계 뱃지 컴포넌트
+    private func statBadge(value: String, label: String) -> some View {
+        VStack(spacing: 4) {
+            Text(value)
+                .font(.system(size: 24, weight: .bold))
+                .foregroundColor(.black)
+            Text(label)
+                .font(.system(size: 12))
+                .foregroundColor(.gray)
+        }
+    }
 }
+
 // MARK: - Preview
 #Preview {
-    NavigationStack {
+    let schema = Schema([PhotoRecord.self, Space.self])
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: schema, configurations: [config])
+    
+    return NavigationStack {
         MySlateView()
+            .modelContainer(container)
             .environmentObject(SpaceManager.shared)
     }
 }

@@ -1,24 +1,19 @@
 import SwiftUI
+import SwiftData
 
 // MARK: - [1] 공간 생성 화면 (CreateSpaceView)
 struct CreateSpaceView: View {
     @Environment(\.dismiss) var dismiss
+    @Environment(\.modelContext) private var modelContext
     @ObservedObject var spaceManager = SpaceManager.shared
     
-    // MARK: - [상태 변수]
     @State private var selectedTag = "Daily"
     @State private var currentMomentText = ""
     @State private var futureSelfText = ""
-    
-    // ⭐️ 에러 해결 1: 단일 UIImage? 대신 [UIImage] 배열로 변경 (다중 선택 대응)
     @State private var selectedImages: [UIImage] = []
-    
     @State private var showPhotoOptions = false
     @State private var showImagePicker = false
-    
-    // ⭐️ 에러 해결 2: Date? 대신 Date로 변경하여 ImagePicker 규격 일치
     @State private var photoDate: Date = Date()
-    
     @State private var isEditingCustomTag = false
     @State private var customTagName = ""
     
@@ -47,7 +42,6 @@ struct CreateSpaceView: View {
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 30) {
-                    // 타이틀 섹션
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Create Your Space")
                             .font(.system(size: 32, weight: .bold))
@@ -56,7 +50,6 @@ struct CreateSpaceView: View {
                             .foregroundColor(.gray)
                     }
                     
-                    // 태그 그리드 섹션
                     LazyVGrid(columns: columns, spacing: 12) {
                         ForEach(tags, id: \.self) { tag in
                             if tag == "Add Space" {
@@ -71,14 +64,13 @@ struct CreateSpaceView: View {
                     }
                     
                     inputSection
-                    photoCaptureSection // ⭐️ 다중 이미지 프리뷰 적용됨
+                    photoCaptureSection
                     createButton
                 }
                 .padding(.horizontal, 24)
             }
         }
         .navigationBarBackButtonHidden(true)
-        // ⭐️ 에러 해결 3: 최신 ImagePicker 규격에 맞춰 인자 전달 (sourceType 제거)
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(selectedImages: $selectedImages, detectedDate: photoDate)
         }
@@ -142,7 +134,6 @@ struct CreateSpaceView: View {
             Button(action: { showImagePicker = true }) {
                 VStack(spacing: 12) {
                     if let firstImage = selectedImages.first {
-                        // ⭐️ 다중 선택 시 첫 번째 이미지를 보여주고 뱃지 표시
                         Image(uiImage: firstImage)
                             .resizable()
                             .scaledToFill()
@@ -196,6 +187,19 @@ struct CreateSpaceView: View {
     private func handleCreateSpace() {
         if isFormValid {
             let finalTag = customTagName.isEmpty ? selectedTag : customTagName
+            
+            // ── SwiftData에 Space 저장 (영속화) ──
+            let startingPhotoData = selectedImages.first?.jpegData(compressionQuality: 0.7)
+            let newSpace = Space(
+                name: finalTag,
+                category: finalTag,
+                currentMemo: currentMomentText,
+                futureMemo: futureSelfText,
+                startingPhotoData: startingPhotoData
+            )
+            modelContext.insert(newSpace)
+            
+            // SpaceManager도 업데이트 (UI 즉시 반영)
             spaceManager.addNewSpace(finalTag)
         }
         dismiss()
@@ -228,8 +232,13 @@ struct TagButton: View {
 // MARK: - [8] 프리뷰
 struct CreateSpaceView_Previews: PreviewProvider {
     static var previews: some View {
+        let schema = Schema([PhotoRecord.self, Space.self])
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try! ModelContainer(for: schema, configurations: [config])
+        
         NavigationStack {
             CreateSpaceView()
+                .modelContainer(container)
         }
     }
 }

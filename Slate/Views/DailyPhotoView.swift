@@ -7,7 +7,13 @@ struct DailyPhotoView: View {
     
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) var dismiss
-    @Query(sort: \PhotoRecord.date, order: .forward) private var allRecords: [PhotoRecord]
+    
+    // ── isDeleted == false인 레코드만 ──
+    @Query(
+        filter: #Predicate<PhotoRecord> { $0.isDeleted == false },
+        sort: \PhotoRecord.date,
+        order: .forward
+    ) private var allRecords: [PhotoRecord]
     
     @State private var showImagePicker = false
     @State private var showCustomCamera = false
@@ -19,11 +25,10 @@ struct DailyPhotoView: View {
 
     let columns = [GridItem(.flexible(), spacing: 2), GridItem(.flexible(), spacing: 2), GridItem(.flexible(), spacing: 2)]
 
-    // 날짜 계산 로직: 오늘 날짜가 포함되도록 범위를 넉넉하게 확장했습니다.
     private var allDatesInCalendar: [Date] {
         let calendar = Calendar.current
-        let startDate = calendar.date(from: DateComponents(year: 2025, month: 9, day: 1))!
-        let endDate = calendar.date(byAdding: .month, value: 12, to: startDate)!
+        let startDate = calendar.date(byAdding: .month, value: -6, to: Date())!
+        let endDate = calendar.date(byAdding: .month, value: 6, to: Date())!
         var dates: [Date] = []
         var current = startDate
         while current <= endDate {
@@ -35,7 +40,7 @@ struct DailyPhotoView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            headerSection // 상단 헤더
+            headerSection
             
             ScrollViewReader { proxy in
                 ScrollView {
@@ -46,17 +51,14 @@ struct DailyPhotoView: View {
                             }
                             
                             daySection(day: day, records: recordsForDay)
-                                // ⭐️ ID를 해당 날짜의 0시 0분 0초로 고정하여 정밀도 향상
                                 .id(Calendar.current.startOfDay(for: day))
                         }
                     }
                     .padding(.bottom, 100)
                 }
                 .onAppear {
-                    // ⭐️ 처음 진입할 때만 오늘 날짜로 포커스합니다.
                     scrollToToday(proxy: proxy)
                 }
-                // ⭐️ onChange 로직을 삭제하여 이미지 저장 시 스크롤이 유지되도록 수정했습니다.
             }
         }
         .navigationBarBackButtonHidden(true)
@@ -68,7 +70,6 @@ struct DailyPhotoView: View {
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(selectedImages: $selectedImages, detectedDate: targetDate)
                 .onDisappear {
-                    // ⭐️ 사진이 저장되어도 스크롤 위치는 그대로 유지됩니다.
                     saveImages()
                 }
         }
@@ -78,12 +79,10 @@ struct DailyPhotoView: View {
         }
     }
 
-    // MARK: - [정밀] 스크롤 포커스 함수
     private func scrollToToday(proxy: ScrollViewProxy) {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         
-        // 0.3초 딜레이를 주어 LazyVStack 렌더링 후 안정적으로 스크롤합니다.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                 proxy.scrollTo(today, anchor: .top)
@@ -125,7 +124,8 @@ struct DailyPhotoView: View {
                     if let data = record.imageData, let uiImage = UIImage(data: data) {
                         ZStack(alignment: .topTrailing) {
                             Image(uiImage: uiImage).resizable().scaledToFill().frame(width: cellSize, height: cellSize).clipped()
-                            Button(action: { withAnimation { modelContext.delete(record) } }) {
+                            // ── Soft Delete: isDeleted = true로 변경 ──
+                            Button(action: { softDeleteRecord(record) }) {
                                 Image(systemName: "xmark").font(.system(size: 10, weight: .bold)).foregroundColor(.white).padding(6).background(Color.white.opacity(0.3)).clipShape(Circle())
                             }.padding(6)
                         }
@@ -142,6 +142,14 @@ struct DailyPhotoView: View {
             .padding(.horizontal, 20)
             
             MemoInputField(day: day, records: records, modelContext: modelContext, spaceTag: selectedCategory)
+        }
+    }
+    
+    // ── Soft Delete ──
+    private func softDeleteRecord(_ record: PhotoRecord) {
+        withAnimation {
+            record.isDeleted = true
+            record.deletedAt = Date()
         }
     }
 
@@ -192,7 +200,7 @@ struct MemoInputField: View {
 
 // MARK: - Preview
 #Preview {
-    let schema = Schema([PhotoRecord.self])
+    let schema = Schema([PhotoRecord.self, Space.self])
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: schema, configurations: [config])
     

@@ -9,8 +9,15 @@ struct CalendarView: View {
     @State private var inputImages: [UIImage] = []
     @State private var showCustomCamera = false
     
-    // 데이터베이스 실시간 연동
-    @Query(sort: \PhotoRecord.date) private var allRecords: [PhotoRecord]
+    // ── isDeleted == false인 레코드만 표시 ──
+    @Query(
+        filter: #Predicate<PhotoRecord> { $0.isDeleted == false },
+        sort: \PhotoRecord.date
+    ) private var activeRecords: [PhotoRecord]
+    
+    // ── Space 목록 로딩 (SwiftData) ──
+    @Query(sort: \Space.createdAt) private var spaces: [Space]
+    
     @ObservedObject var spaceManager = SpaceManager.shared
     
     @State private var selectedCategory = "Daily"
@@ -24,9 +31,12 @@ struct CalendarView: View {
     
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
+    // ── 동적 월 범위: joinDate 기반 ──
     private var monthInterval: [Date] {
         let calendar = Calendar.current
-        let startDate = calendar.date(from: DateComponents(year: 2025, month: 9, day: 1))!
+        // UserDefaults에 joinDate가 없으면 현재 달 - 3개월부터
+        let joinDate = UserDefaults.standard.object(forKey: "slate_joinDate") as? Date ?? calendar.date(byAdding: .month, value: -3, to: Date())!
+        let startDate = calendar.date(from: calendar.dateComponents([.year, .month], from: joinDate))!
         let endDate = calendar.date(byAdding: .month, value: 3, to: Date())!
         var months: [Date] = []
         var current = startDate
@@ -63,7 +73,7 @@ struct CalendarView: View {
                                 MonthSectionView(month: month,
                                                  showActionSheet: $showActionSheet,
                                                  targetDate: $targetDate,
-                                                 allRecords: allRecords,
+                                                 allRecords: activeRecords,
                                                  totalWidth: totalWidth,
                                                  selectedCategory: selectedCategory)
                                     .id(month)
@@ -79,7 +89,6 @@ struct CalendarView: View {
                     }
                 }
             }
-            // ⭐️ 네비게이션 및 시트 설정
             .navigationDestination(isPresented: $navigateToCreateSpace) {
                 CreateSpaceView()
             }
@@ -103,10 +112,21 @@ struct CalendarView: View {
         }
         .background(Color(red: 0.98, green: 0.98, blue: 0.98))
         .onReceive(timer) { currentTime = $0 }
+        .onAppear {
+            // ── Space 카테고리 동기화 ──
+            spaceManager.syncCategories(from: spaces)
+            // ── joinDate 기록 (최초 1회) ──
+            if UserDefaults.standard.object(forKey: "slate_joinDate") == nil {
+                UserDefaults.standard.set(Date(), forKey: "slate_joinDate")
+            }
+        }
+        .onChange(of: spaces) { _, newSpaces in
+            spaceManager.syncCategories(from: newSpaces)
+        }
         .navigationBarBackButtonHidden(true)
     }
     
-    // 사진 저장 로직 분리
+    // 사진 저장 로직
     private func saveSelectedImages() {
         for img in inputImages {
             let data = img.jpegData(compressionQuality: 0.7)
@@ -127,15 +147,13 @@ struct CalendarView: View {
 struct CalendarHeaderView: View {
     let currentTime: Date
     
-    // ⭐️ 1. 알림 유무와 애니메이션 상태값 추가
-    @State private var hasNotification: Bool = true // 나중에 실제 데이터와 연결하세요!
+    @State private var hasNotification: Bool = true
     @State private var animateGlow: Bool = false
     
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
                 HStack {
-                    // 🔔 알람 버튼
                     NavigationLink(destination: SocialFeedView()) {
                         ZStack {
                             if hasNotification {
@@ -143,7 +161,6 @@ struct CalendarHeaderView: View {
                                     .fill(
                                         RadialGradient(
                                             gradient: Gradient(colors: [
-                                                // ⭐️ 채도를 낮춘 회색 톤 (보드라운 느낌)
                                                 Color(white: 0.85).opacity(animateGlow ? 0.8 : 0.1),
                                                 Color.clear
                                             ]),
@@ -153,7 +170,6 @@ struct CalendarHeaderView: View {
                                         )
                                     )
                                     .frame(width: 40, height: 40)
-                                    // ⭐️ 스케일 변화도 아주 미세하게 (1.0 -> 1.1)
                                     .scaleEffect(animateGlow ? 1.1 : 1.0)
                                     .onAppear {
                                         withAnimation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true)) {
@@ -163,15 +179,14 @@ struct CalendarHeaderView: View {
                             }
                             
                             Image(systemName: hasNotification ? "bell.badge" : "bell")
-                                .font(.system(size: 17)) // 크기 살짝 줄여서 더 정갈하게
-                                .foregroundColor(Color(white: 0.2)) // 완전 검정보다 짙은 회색이 더 고급짐
+                                .font(.system(size: 17))
+                                .foregroundColor(Color(white: 0.2))
                         }
                         .padding(.leading, 16)
                     }
                     
                     Spacer()
                 
-                    // 오른쪽 쓰레기통 버튼 (기존 유지)
                     NavigationLink(destination: RecentlyDeletedView()) {
                         Image(systemName: "trash")
                             .font(.system(size: 18))
@@ -180,7 +195,6 @@ struct CalendarHeaderView: View {
                     }
                 }
                 
-                // 중앙 날짜 (기존 유지)
                 VStack(spacing: 2) {
                     Text(currentTime.formatted(date: .complete, time: .omitted))
                         .font(.system(size: 14, weight: .medium))
@@ -235,7 +249,6 @@ struct MonthSectionView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 15) {
-            // ⭐️ 월 이름과 공유 버튼을 가로로 배치
             HStack(alignment: .center, spacing: 10) {
                 Text(month.formatted(.dateTime.month(.wide)))
                     .font(.system(size: 26, weight: .bold))
@@ -243,7 +256,6 @@ struct MonthSectionView: View {
                 NavigationLink(destination: MonthShareDetailView(
                                     month: month,
                                     records: allRecords.filter {
-                                        // 해당 월에 속하고 + 현재 선택된 카테고리인 데이터만 필터링
                                         Calendar.current.isDate($0.date, equalTo: month, toGranularity: .month) &&
                                         $0.spaceTag == selectedCategory
                                     },
@@ -341,7 +353,7 @@ struct CalendarCell: View {
 
 // MARK: - Preview
 #Preview {
-    let schema = Schema([PhotoRecord.self])
+    let schema = Schema([PhotoRecord.self, Space.self])
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: schema, configurations: [config])
     
