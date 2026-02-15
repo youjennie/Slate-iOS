@@ -1,0 +1,139 @@
+import SwiftUI
+import SwiftData
+
+struct RecentlyDeletedView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) var dismiss
+    
+    // ⭐️ 역순(최신순)으로 정렬하여 불러옵니다.
+    @Query(sort: \PhotoRecord.date, order: .reverse) private var allRecords: [PhotoRecord]
+    
+    let columns = [
+        GridItem(.flexible(), spacing: 10),
+        GridItem(.flexible(), spacing: 10),
+        GridItem(.flexible(), spacing: 10)
+    ]
+    
+    // 날짜별 그룹화 로직
+    private var groupedRecords: [(Date, [PhotoRecord])] {
+        let grouping = Dictionary(grouping: allRecords) { record in
+            Calendar.current.startOfDay(for: record.date)
+        }
+        return grouping.sorted { $0.key > $1.key }
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // (A) 상단 헤더
+            HStack {
+                Button(action: { dismiss() }) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "chevron.left")
+                    }
+                    .font(.system(size: 17, weight: .medium))
+                    .foregroundColor(.black)
+                }
+                
+                Spacer()
+                
+                Text("Recently Deleted")
+                    .font(.system(size: 18, weight: .bold))
+                
+                Spacer()
+                
+                // 전체 비우기 버튼
+                Button(action: { deleteAll() }) {
+                    Text("Empty")
+                        .font(.system(size: 17))
+                        .foregroundColor(.red)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .background(Color.white)
+            
+            // (B) 삭제된 사진 그리드
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 30) {
+                    if allRecords.isEmpty {
+                        VStack {
+                            Spacer(minLength: 200)
+                            Text("No recently deleted photos.")
+                                .foregroundColor(.secondary)
+                        }
+                        .frame(maxWidth: .infinity)
+                    } else {
+                        ForEach(groupedRecords, id: \.0) { date, records in
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text(date.formatted(.dateTime.month(.wide).day()))
+                                    .font(.system(size: 18, weight: .bold))
+                                    .padding(.horizontal, 16)
+                                
+                                LazyVGrid(columns: columns, spacing: 10) {
+                                    ForEach(records) { record in
+                                        if let data = record.imageData, let uiImage = UIImage(data: data) {
+                                            ZStack(alignment: .bottom) {
+                                                Image(uiImage: uiImage)
+                                                    .resizable()
+                                                    .scaledToFill()
+                                                    .frame(width: (UIScreen.main.bounds.width - 52) / 3, height: (UIScreen.main.bounds.width - 52) / 3)
+                                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                                
+                                                // ⭐️ 복구 & 삭제 제어 바
+                                                HStack(spacing: 0) {
+                                                    // 복구 버튼
+                                                    Button(action: { /* 복구 로직 (현재는 리스트 유지) */ }) {
+                                                        Image(systemName: "arrow.uturn.backward.circle.fill")
+                                                            .font(.system(size: 20))
+                                                            .foregroundColor(.green)
+                                                            .background(Color.white.clipShape(Circle()))
+                                                    }
+                                                    .frame(maxWidth: .infinity)
+                                                    
+                                                    // 영구 삭제 버튼
+                                                    Button(action: {
+                                                        withAnimation { modelContext.delete(record) }
+                                                    }) {
+                                                        Image(systemName: "xmark.circle.fill")
+                                                            .font(.system(size: 20))
+                                                            .foregroundColor(.red)
+                                                            .background(Color.white.clipShape(Circle()))
+                                                    }
+                                                    .frame(maxWidth: .infinity)
+                                                }
+                                                .padding(.bottom, 8)
+                                                .background(
+                                                    LinearGradient(colors: [.clear, .black.opacity(0.3)], startPoint: .top, endPoint: .bottom)
+                                                        .cornerRadius(12)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                                .padding(.horizontal, 16)
+                            }
+                        }
+                    }
+                }
+                .padding(.top, 20)
+            }
+        }
+        .navigationBarBackButtonHidden(true)
+        .background(Color(red: 0.98, green: 0.98, blue: 0.98))
+    }
+    
+    // 전체 영구 삭제 함수
+    private func deleteAll() {
+        for record in allRecords {
+            modelContext.delete(record)
+        }
+    }
+}
+
+// MARK: - Preview
+#Preview {
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: PhotoRecord.self, configurations: config)
+    return RecentlyDeletedView()
+        .modelContainer(container)
+}
