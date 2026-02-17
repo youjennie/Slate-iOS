@@ -5,6 +5,11 @@ struct MySlateView: View {
     @Environment(\.dismiss) var dismiss
     @State private var isCameraPresented = false
     
+    // ── 루트(CalendarView)로 돌아가기 위한 바인딩 ──
+    // 사용법: NavigationStack(path: $navPath) 에서 navPath를 전달받거나,
+    //         아래처럼 dismiss()를 루트까지 반복 호출하는 방식 사용
+    @Binding var navigationPath: NavigationPath
+    
     // ── SwiftData에서 실시간 데이터 로딩 ──
     @Query(sort: \PhotoRecord.date) private var allRecords: [PhotoRecord]
     
@@ -16,6 +21,11 @@ struct MySlateView: View {
     // ── 실시간 계산 (하드코딩 제거) ──
     private var progress: SlateProgress {
         ProgressCalculator.calculate(from: allRecords)
+    }
+    
+    // ── navigationPath 없이도 사용 가능하도록 convenience init ──
+    init(navigationPath: Binding<NavigationPath> = .constant(NavigationPath())) {
+        self._navigationPath = navigationPath
     }
 
     var body: some View {
@@ -40,7 +50,7 @@ struct MySlateView: View {
                     
                     // --- 상단 헤더 ---
                     HStack {
-                        Button(action: { dismiss() }) {
+                        Button(action: { goBackToCalendar() }) {
                             Image(systemName: "chevron.left")
                                 .font(.system(size: 20, weight: .medium))
                                 .foregroundColor(.black)
@@ -140,6 +150,12 @@ struct MySlateView: View {
             }
         }
         .navigationBarHidden(true)
+    }
+    
+    // ── 무조건 CalendarView(루트)로 이동 ──
+    private func goBackToCalendar() {
+        // NavigationPath를 비우면 NavigationStack의 루트(CalendarView)로 돌아감
+        navigationPath = NavigationPath()
     }
     
     // 원형 이미지 컴포넌트

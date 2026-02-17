@@ -57,7 +57,7 @@ struct DailyPhotoView: View {
                     .padding(.bottom, 100)
                 }
                 .onAppear {
-                    scrollToToday(proxy: proxy)
+                    scrollToTargetDate(proxy: proxy)
                 }
             }
         }
@@ -79,13 +79,14 @@ struct DailyPhotoView: View {
         }
     }
 
-    private func scrollToToday(proxy: ScrollViewProxy) {
+    /// 캘린더에서 클릭한 날짜(date)로 스크롤 — 오늘이 아닌 전달받은 날짜 기준
+    private func scrollToTargetDate(proxy: ScrollViewProxy) {
         let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
+        let target = calendar.startOfDay(for: date) // ← 전달받은 날짜로 포커스
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                proxy.scrollTo(today, anchor: .top)
+                proxy.scrollTo(target, anchor: .top)
             }
         }
     }

@@ -1,10 +1,12 @@
 import SwiftUI
+import SwiftData
 
 struct OnboardingView: View {
     @EnvironmentObject var spaceManager: SpaceManager
+    @Environment(\.modelContext) private var modelContext
     @State private var userName: String = ""
     
-    let slateOlive = Color(hex: "#BACE9C") // 핵심 컬러 활용
+    let slateDark = Color(hex: "#414141")
     let slateWhite = Color(red: 183/255, green: 194/255, blue: 198/255)
 
     var body: some View {
@@ -12,14 +14,12 @@ struct OnboardingView: View {
             let screenWidth = geometry.size.width
             
             ZStack {
-                // 1. 배경 이미지
                 Image("background_paper")
                     .resizable()
                     .scaledToFill()
                     .frame(width: screenWidth)
                     .ignoresSafeArea()
 
-                // 2. 콘텐츠 층
                 VStack(spacing: 40) {
                     Spacer()
                     
@@ -33,7 +33,6 @@ struct OnboardingView: View {
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(Color.black.opacity(0.5))
                         
-                        // 입력 필드와 버튼 섹션
                         HStack {
                             TextField("Your Name", text: $userName)
                                 .padding(.leading, 24)
@@ -45,7 +44,7 @@ struct OnboardingView: View {
                                 Image(systemName: "chevron.right.circle.fill")
                                     .resizable()
                                     .frame(width: 44, height: 44)
-                                    .foregroundColor(userName.isEmpty ? .gray.opacity(0.3) : slateOlive)
+                                    .foregroundColor(userName.isEmpty ? .gray.opacity(0.3) : slateDark)
                                     .padding(8)
                             }
                             .disabled(userName.isEmpty)
@@ -76,7 +75,20 @@ struct OnboardingView: View {
     private func loginAction() {
         if !userName.isEmpty {
             spaceManager.userName = userName
-            // 애니메이션과 함께 메인 화면으로 전환
+            
+            // ── joinDate 기록 (최초 1회) ──
+            if UserDefaults.standard.object(forKey: "slate_joinDate") == nil {
+                UserDefaults.standard.set(Date(), forKey: "slate_joinDate")
+            }
+            
+            // ── 기본 "Daily" Space 생성 (최초 1회) ──
+            let descriptor = FetchDescriptor<Space>()
+            let existingSpaces = (try? modelContext.fetch(descriptor)) ?? []
+            if existingSpaces.isEmpty {
+                let defaultSpace = Space(name: "Daily", category: "Daily", isDefault: true)
+                modelContext.insert(defaultSpace)
+            }
+            
             withAnimation(.easeInOut(duration: 0.6)) {
                 spaceManager.isLoggedIn = true
             }
@@ -84,7 +96,7 @@ struct OnboardingView: View {
     }
 }
 
-// 편리한 사용을 위한 Color Hex 확장
+// Color Hex 확장
 extension Color {
     init(hex: String) {
         let scanner = Scanner(string: hex)
@@ -99,7 +111,13 @@ extension Color {
 }
 
 #Preview {
-    NavigationStack {
+    let schema = Schema([PhotoRecord.self, Space.self])
+    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+    let container = try! ModelContainer(for: schema, configurations: [config])
+    
+    return NavigationStack {
         OnboardingView()
+            .modelContainer(container)
+            .environmentObject(SpaceManager.shared)
     }
 }

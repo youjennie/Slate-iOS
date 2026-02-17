@@ -29,9 +29,70 @@
 		D7EF54BF2F2C8FFD0017F415 /* slate-2026UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "slate-2026UITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		D7626A0D2F441A87006EF5C5 /* Exceptions for "Slate" folder in "slate-2026" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				App/SlateApp.swift,
+				Assets.xcassets,
+				Models/PhotoRecord.swift,
+				Models/Space.swift,
+				Services/CameraService.swift,
+				Services/ProgressCalculator.swift,
+				Views/CalendarView.swift,
+				Views/CameraView.swift,
+				Views/CreateSpaceView.swift,
+				Views/DailyPhotoView.swift,
+				Views/ImagePicker.swift,
+				Views/LoginView.swift,
+				Views/MainTabView.swift,
+				Views/MonthShareDetailView.swift,
+				Views/MonthSummaryView.swift,
+				Views/MySlateView.swift,
+				Views/OnboardingView.swift,
+				Views/RecentlyDeleted.swift,
+				Views/Settings.swift,
+				Views/SocialFeedView.swift,
+				Views/SpaceManager.swift,
+			);
+			target = D7EF54A72F2C8FFB0017F415 /* slate-2026 */;
+		};
+		D7626A0E2F441A87006EF5C5 /* Exceptions for "Slate" folder in "slate-2026Tests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				App/SlateApp.swift,
+				Assets.xcassets,
+				Models/PhotoRecord.swift,
+				Models/Space.swift,
+				Services/CameraService.swift,
+				Services/ProgressCalculator.swift,
+				Views/CalendarView.swift,
+				Views/CameraView.swift,
+				Views/CreateSpaceView.swift,
+				Views/DailyPhotoView.swift,
+				Views/ImagePicker.swift,
+				Views/LoginView.swift,
+				Views/MainTabView.swift,
+				Views/MonthShareDetailView.swift,
+				Views/MonthSummaryView.swift,
+				Views/MySlateView.swift,
+				Views/OnboardingView.swift,
+				Views/RecentlyDeleted.swift,
+				Views/Settings.swift,
+				Views/SocialFeedView.swift,
+				Views/SpaceManager.swift,
+			);
+			target = D7EF54B42F2C8FFD0017F415 /* slate-2026Tests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		D7EF54AA2F2C8FFB0017F415 /* Slate */ = {
+		D76269F72F441A87006EF5C5 /* Slate */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D7626A0D2F441A87006EF5C5 /* Exceptions for "Slate" folder in "slate-2026" target */,
+				D7626A0E2F441A87006EF5C5 /* Exceptions for "Slate" folder in "slate-2026Tests" target */,
+			);
 			path = Slate;
 			sourceTree = "<group>";
 		};
@@ -75,7 +136,7 @@
 		D7EF549F2F2C8FFB0017F415 = {
 			isa = PBXGroup;
 			children = (
-				D7EF54AA2F2C8FFB0017F415 /* Slate */,
+				D76269F72F441A87006EF5C5 /* Slate */,
 				D7EF54B82F2C8FFD0017F415 /* slate-2026Tests */,
 				D7EF54C22F2C8FFD0017F415 /* slate-2026UITests */,
 				D7EF54A92F2C8FFB0017F415 /* Products */,
@@ -107,9 +168,6 @@
 			);
 			dependencies = (
 			);
-			fileSystemSynchronizedGroups = (
-				D7EF54AA2F2C8FFB0017F415 /* Slate */,
-			);
 			name = "slate-2026";
 			packageProductDependencies = (
 			);
@@ -131,6 +189,7 @@
 				D7EF54B72F2C8FFD0017F415 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
+				D76269F72F441A87006EF5C5 /* Slate */,
 				D7EF54B82F2C8FFD0017F415 /* slate-2026Tests */,
 			);
 			name = "slate-2026Tests";

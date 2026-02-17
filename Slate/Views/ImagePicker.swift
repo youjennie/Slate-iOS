@@ -2,14 +2,13 @@ import SwiftUI
 import PhotosUI
 
 struct ImagePicker: UIViewControllerRepresentable {
-    // 이제 한 장이 아니라 여러 장을 담을 수 있게 [UIImage] 배열로 받습니다.
     @Binding var selectedImages: [UIImage]
     var detectedDate: Date
     
     func makeUIViewController(context: Context) -> PHPickerViewController {
         var config = PHPickerConfiguration()
         config.filter = .images
-        config.selectionLimit = 3 // 0으로 설정하면 무제한 선택 가능!
+        config.selectionLimit = 3
         
         let picker = PHPickerViewController(configuration: config)
         picker.delegate = context.coordinator
