@@ -459,6 +459,9 @@
 				DEVELOPMENT_TEAM = YN565ZL5YC;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Slate needs camera access to capture your daily moments.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Slate saves your captured photos to your library when Auto Save is on.";
+				CODE_SIGN_ENTITLEMENTS = "Slate/slate-2026.entitlements";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -487,6 +490,9 @@
 				DEVELOPMENT_TEAM = YN565ZL5YC;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "Slate needs camera access to capture your daily moments.";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Slate saves your captured photos to your library when Auto Save is on.";
+				CODE_SIGN_ENTITLEMENTS = "Slate/slate-2026.entitlements";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
