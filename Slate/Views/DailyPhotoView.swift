@@ -74,7 +74,7 @@ struct DailyPhotoView: View {
                 }
         }
         .fullScreenCover(isPresented: $showCustomCamera) {
-            CameraView()
+            CameraView(selectedCategory: selectedCategory)
                 .environmentObject(SpaceManager.shared)
         }
     }

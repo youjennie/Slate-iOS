@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import AuthenticationServices
 
 @main
 struct SlateApp: App {
@@ -35,6 +36,7 @@ struct SlateApp: App {
                     MainTabView()
                         .onAppear {
                             cleanupDeletedRecords()
+                            verifyAppleCredential()
                         }
                 } else {
                     LoginView()
@@ -46,6 +48,19 @@ struct SlateApp: App {
         }
     }
     
+    /// 앱 실행 시 Apple ID 자격 상태 확인 — 사용자가 설정에서 Apple 로그인을
+    /// 해지(revoked)했거나 계정을 찾을 수 없으면 자동 로그아웃 처리
+    private func verifyAppleCredential() {
+        guard let userID = spaceManager.appleUserID else { return }
+        ASAuthorizationAppleIDProvider().getCredentialState(forUserID: userID) { state, _ in
+            DispatchQueue.main.async {
+                if state == .revoked || state == .notFound {
+                    spaceManager.logout()
+                }
+            }
+        }
+    }
+
     /// 30일 이상 지난 soft-deleted 레코드 영구 삭제
     private func cleanupDeletedRecords() {
         let context = sharedModelContainer.mainContext

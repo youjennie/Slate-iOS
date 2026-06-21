@@ -1,12 +1,16 @@
 import SwiftUI
 import SwiftData
 import Photos
+import UIKit
 
 struct CameraView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var spaceManager: SpaceManager
-    
+
+    /// 촬영한 사진을 저장할 카테고리(Space). 호출하는 화면에서 주입
+    var selectedCategory: String = "Daily"
+
     // ── 실제 카메라 서비스 ──
     @StateObject private var cameraService = CameraService()
     
@@ -144,10 +148,12 @@ struct CameraView: View {
     @MainActor
     private func takePhotoAndSave() {
         if cameraService.isCameraAuthorized {
-            // ── 실제 카메라로 촬영 ──
+            // ── 실제 카메라로 촬영 + 선택한 스타일(날짜/시간 워터마크) 합성 ──
             cameraService.takePhoto { image in
                 guard let uiImage = image else { return }
-                savePhoto(uiImage)
+                Task { @MainActor in
+                    savePhoto(composited(uiImage))
+                }
             }
         } else {
             // 카메라 권한 없을 때 → 필터 오버레이만 렌더링해서 저장 (기존 방식 폴백)
@@ -172,14 +178,38 @@ struct CameraView: View {
         if autoSave {
             UIImageWriteToSavedPhotosAlbum(uiImage, nil, nil, nil)
         }
-        
-        // SwiftData 기록 — 현재 선택된 카테고리 사용
+
+        // SwiftData 기록 — 호출한 화면에서 주입된 카테고리 사용
         if let imageData = uiImage.jpegData(compressionQuality: 0.8) {
-            let spaceTag = spaceManager.categories.first ?? "Daily"
-            let newRecord = PhotoRecord(date: Date(), imageData: imageData, spaceTag: spaceTag)
+            let newRecord = PhotoRecord(date: Date(), imageData: imageData, spaceTag: selectedCategory)
             modelContext.insert(newRecord)
         }
         showingSaveAlert = true
+    }
+
+    /// 촬영 원본 위에 선택한 스타일의 날짜/시간 워터마크를 합성
+    /// - 오버레이는 390pt 기준 레이아웃으로 그린 뒤 사진 해상도에 맞춰 확대 → 비율/선명도 유지
+    @MainActor
+    private func composited(_ base: UIImage) -> UIImage {
+        let targetSize = base.size
+        guard targetSize.width > 0, targetSize.height > 0 else { return base }
+        let ratio = targetSize.width / 390.0
+
+        let renderer = ImageRenderer(content:
+            filterOverlayView(index: selectedFilterIndex)
+                .frame(width: 390, height: targetSize.height / max(ratio, 0.001))
+                .scaleEffect(ratio)
+                .frame(width: targetSize.width, height: targetSize.height)
+        )
+        renderer.scale = base.scale
+        guard let overlayImage = renderer.uiImage else { return base }
+
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = base.scale
+        return UIGraphicsImageRenderer(size: targetSize, format: format).image { _ in
+            base.draw(in: CGRect(origin: .zero, size: targetSize))
+            overlayImage.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
     }
 
     // MARK: - 필터 선택기

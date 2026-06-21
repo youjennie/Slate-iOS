@@ -2,8 +2,10 @@ import SwiftUI
 import AuthenticationServices
 
 struct LoginView: View {
+    @EnvironmentObject var spaceManager: SpaceManager
     @State private var showOnboarding = false
-    
+    @State private var prefillName = ""
+
     var body: some View {
         GeometryReader { geometry in
             let screenWidth = geometry.size.width
@@ -51,7 +53,7 @@ struct LoginView: View {
                     .padding(.horizontal, 30)
                 }
                 .fullScreenCover(isPresented: $showOnboarding) {
-                    OnboardingView()
+                    OnboardingView(prefillName: prefillName)
                 }
             }
         }
@@ -60,8 +62,31 @@ struct LoginView: View {
     private func handleAppleLogin(result: Result<ASAuthorization, Error>) {
         switch result {
         case .success(let auth):
-            print("Apple 로그인 성공: \(auth)")
-            showOnboarding = true
+            guard let credential = auth.credential as? ASAuthorizationAppleIDCredential else {
+                showOnboarding = true
+                return
+            }
+
+            // ── 안정적 사용자 식별자 저장 (재로그인/revoke 감지용) ──
+            spaceManager.appleUserID = credential.user
+
+            // ── Apple은 fullName/email을 '최초 1회'만 제공 → 있으면 이름 prefill ──
+            if let fullName = credential.fullName {
+                let name = [fullName.givenName, fullName.familyName]
+                    .compactMap { $0 }
+                    .joined(separator: " ")
+                    .trimmingCharacters(in: .whitespaces)
+                if !name.isEmpty { prefillName = name }
+            }
+
+            // ── 이미 온보딩을 끝낸(이름이 있는) 재로그인 사용자는 바로 입장 ──
+            if !spaceManager.userName.isEmpty {
+                withAnimation(.easeInOut(duration: 0.6)) {
+                    spaceManager.isLoggedIn = true
+                }
+            } else {
+                showOnboarding = true
+            }
         case .failure(let error):
             print("Apple 로그인 실패: \(error.localizedDescription)")
         }

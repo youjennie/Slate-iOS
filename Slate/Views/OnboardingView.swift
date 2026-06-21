@@ -4,8 +4,13 @@ import SwiftData
 struct OnboardingView: View {
     @EnvironmentObject var spaceManager: SpaceManager
     @Environment(\.modelContext) private var modelContext
-    @State private var userName: String = ""
-    
+    @State private var userName: String
+
+    /// Apple 로그인에서 받은 이름을 미리 채워 넣을 수 있게 함
+    init(prefillName: String = "") {
+        _userName = State(initialValue: prefillName)
+    }
+
     let slateDark = Color(hex: "#414141")
     let slateWhite = Color(red: 183/255, green: 194/255, blue: 198/255)
 

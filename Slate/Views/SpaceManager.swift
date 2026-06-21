@@ -14,14 +14,19 @@ class SpaceManager: ObservableObject {
     @Published var isLoggedIn: Bool {
         didSet { UserDefaults.standard.set(isLoggedIn, forKey: "slate_isLoggedIn") }
     }
-    
+    /// Apple Sign In이 발급하는 안정적 사용자 식별자 (재로그인/revoke 감지용)
+    @Published var appleUserID: String? {
+        didSet { UserDefaults.standard.set(appleUserID, forKey: "slate_appleUserID") }
+    }
+
     // ── Space 기반 카테고리 (SwiftData에서 로딩) ──
     @Published var categories: [String] = ["Daily"]
-    
+
     private init() {
         // UserDefaults에서 복원
         self.userName = UserDefaults.standard.string(forKey: "slate_userName") ?? ""
         self.isLoggedIn = UserDefaults.standard.bool(forKey: "slate_isLoggedIn")
+        self.appleUserID = UserDefaults.standard.string(forKey: "slate_appleUserID")
     }
     
     /// SwiftData의 Space 목록에서 카테고리를 동기화
@@ -53,8 +58,10 @@ class SpaceManager: ObservableObject {
     func deleteAccount() {
         userName = ""
         isLoggedIn = false
+        appleUserID = nil
         categories = ["Daily"]
         UserDefaults.standard.removeObject(forKey: "slate_userName")
         UserDefaults.standard.removeObject(forKey: "slate_isLoggedIn")
+        UserDefaults.standard.removeObject(forKey: "slate_appleUserID")
     }
 }

@@ -29,10 +29,10 @@ final class PhotoRecord {
         self.memo = memo
         self.imageData = imageData
         self.spaceTag = spaceTag
-        self.isDeleted = false
-        self.deletedAt = nil
+        self.isDeleted = isDeleted
+        self.deletedAt = deletedAt
         self.createdAt = Date()
-        self.remoteURL = nil
+        self.remoteURL = remoteURL
     }
 }
 

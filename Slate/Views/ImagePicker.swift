@@ -4,11 +4,12 @@ import PhotosUI
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var selectedImages: [UIImage]
     var detectedDate: Date
-    
+    var selectionLimit: Int = 3
+
     func makeUIViewController(context: Context) -> PHPickerViewController {
         var config = PHPickerConfiguration()
         config.filter = .images
-        config.selectionLimit = 3
+        config.selectionLimit = selectionLimit
         
         let picker = PHPickerViewController(configuration: config)
         picker.delegate = context.coordinator

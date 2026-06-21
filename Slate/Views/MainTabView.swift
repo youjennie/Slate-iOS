@@ -27,7 +27,7 @@ struct MainTabView: View {
                 if selectedTab == 0 {
                     NavigationStack { CalendarView() }
                 } else {
-                    NavigationStack { MySlateView() }
+                    NavigationStack { MySlateView(onBack: { selectedTab = 0 }) }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

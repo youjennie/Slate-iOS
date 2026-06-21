@@ -105,7 +105,7 @@ struct CalendarView: View {
             }
             .fullScreenCover(isPresented: $showCustomCamera) {
                 NavigationStack {
-                    CameraView()
+                    CameraView(selectedCategory: selectedCategory)
                         .environmentObject(SpaceManager.shared)
                 }
             }
@@ -146,8 +146,10 @@ struct CalendarView: View {
 // MARK: - [2] 커스텀 헤더 뷰 (CalendarHeaderView)
 struct CalendarHeaderView: View {
     let currentTime: Date
-    
-    @State private var hasNotification: Bool = true
+
+    // TODO: 소셜 백엔드(Firebase) 연동 시 실제 미확인 알림 여부로 구동.
+    //       그 전까지는 가짜 배지를 띄우지 않도록 false.
+    @State private var hasNotification: Bool = false
     @State private var animateGlow: Bool = false
     
     var body: some View {
