@@ -22,6 +22,7 @@ struct CalendarView: View {
     
     @State private var selectedCategory = "Daily"
     @State private var navigateToCreateSpace = false
+    @State private var showWallet = false
     @State private var showImagePicker = false
     @State private var photoDate: Date?
     @State private var sourceType: UIImagePickerController.SourceType = .photoLibrary
@@ -63,6 +64,7 @@ struct CalendarView: View {
                 // (B) 카테고리 선택 섹션
                 CalendarCategorySelector(selectedCategory: $selectedCategory,
                                         navigateToCreateSpace: $navigateToCreateSpace,
+                                        showWallet: $showWallet,
                                         spaceManager: spaceManager)
                 
                 // (C) 메인 캘린더 리스트
@@ -109,8 +111,14 @@ struct CalendarView: View {
                         .environmentObject(SpaceManager.shared)
                 }
             }
+            .sheet(isPresented: $showWallet) {
+                SpacesWalletView(selectedCategory: $selectedCategory) {
+                    navigateToCreateSpace = true
+                }
+                .presentationDetents([.large, .medium])
+            }
         }
-        .background(Color(red: 0.98, green: 0.98, blue: 0.98))
+        .background(SlateColor.paper)
         .onReceive(timer) { currentTime = $0 }
         .onAppear {
             // ── Space 카테고리 동기화 ──
@@ -182,7 +190,7 @@ struct CalendarHeaderView: View {
                             
                             Image(systemName: hasNotification ? "bell.badge" : "bell")
                                 .font(.system(size: 17))
-                                .foregroundColor(Color(white: 0.2))
+                                .foregroundColor(SlateColor.ink)
                         }
                         .padding(.leading, 16)
                     }
@@ -192,7 +200,7 @@ struct CalendarHeaderView: View {
                     NavigationLink(destination: RecentlyDeletedView()) {
                         Image(systemName: "trash")
                             .font(.system(size: 18))
-                            .foregroundColor(.gray)
+                            .foregroundColor(SlateColor.inkSoft)
                             .padding(.trailing, 16)
                     }
                 }
@@ -202,13 +210,13 @@ struct CalendarHeaderView: View {
                         .font(.system(size: 14, weight: .medium))
                     Text(currentTime.formatted(date: .omitted, time: .shortened) + " PST")
                         .font(.system(size: 11))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(SlateColor.inkSoft)
                 }
             }
             .frame(height: 50)
         }
         .padding(.vertical, 5)
-        .background(Color.white)
+        .background(SlateColor.paperSoft)
     }
 }
 
@@ -216,21 +224,31 @@ struct CalendarHeaderView: View {
 struct CalendarCategorySelector: View {
     @Binding var selectedCategory: String
     @Binding var navigateToCreateSpace: Bool
+    @Binding var showWallet: Bool
     @ObservedObject var spaceManager: SpaceManager
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 15) {
+                // 월렛(지갑) 열기
+                Button(action: { showWallet = true }) {
+                    Image(systemName: "rectangle.stack.fill")
+                        .foregroundColor(SlateColor.leafDeep)
+                        .font(.system(size: 18))
+                }
                 ForEach(spaceManager.categories, id: \.self) { category in
                     Button(action: { selectedCategory = category }) {
-                        Text(category)
-                            .font(.system(size: 16, weight: selectedCategory == category ? .bold : .medium))
-                            .foregroundColor(selectedCategory == category ? .black : .gray)
-                            .padding(.bottom, 5)
-                            .overlay(Rectangle().fill(selectedCategory == category ? Color.black : Color.clear).frame(height: 2).offset(y: 5), alignment: .bottom)
+                        HStack(spacing: 5) {
+                            Text(SlateEmoji.forSpace(named: category)).font(.system(size: 13))
+                            Text(category)
+                                .font(.system(size: 16, weight: selectedCategory == category ? .bold : .medium))
+                        }
+                        .foregroundColor(selectedCategory == category ? SlateColor.ink : SlateColor.inkFaint)
+                        .padding(.bottom, 5)
+                        .overlay(Rectangle().fill(selectedCategory == category ? SlateColor.leafDeep : Color.clear).frame(height: 2).offset(y: 5), alignment: .bottom)
                     }
                 }
                 Button(action: { navigateToCreateSpace = true }) {
-                    Image(systemName: "plus.circle.fill").foregroundColor(.gray).font(.system(size: 20))
+                    Image(systemName: "plus.circle.fill").foregroundColor(SlateColor.inkFaint).font(.system(size: 20))
                 }
             }
             .padding(.horizontal, 20)
@@ -253,7 +271,7 @@ struct MonthSectionView: View {
         VStack(alignment: .leading, spacing: 15) {
             HStack(alignment: .center, spacing: 10) {
                 Text(month.formatted(.dateTime.month(.wide)))
-                    .font(.system(size: 26, weight: .bold))
+                    .font(.slateSerif(26, weight: .bold))
                 
                 NavigationLink(destination: MonthShareDetailView(
                                     month: month,
@@ -265,7 +283,7 @@ struct MonthSectionView: View {
                                 )) {
                                     Image(systemName: "square.and.arrow.up")
                                         .font(.system(size: 20))
-                                        .foregroundColor(.black)
+                                        .foregroundColor(SlateColor.ink)
                                 }
             }
             .padding(.horizontal, 24)
@@ -323,14 +341,14 @@ struct CalendarCell: View {
                 RoundedRectangle(cornerRadius: size * 0.15)
                     .fill(Color.white)
                     .overlay(Image(systemName: "photo")
-                        .foregroundColor(.gray.opacity(0.1))
+                        .foregroundColor(SlateColor.inkFaint.opacity(0.1))
                         .font(.system(size: size * 0.3)))
             }
             
             Text("\(day)")
                 .font(.system(size: size * 0.18, weight: .bold))
                 .padding(size * 0.1)
-                .foregroundColor(firstImage == nil ? .gray.opacity(0.5) : .white)
+                .foregroundColor(firstImage == nil ? SlateColor.inkFaint.opacity(0.5) : .white)
             
             if photoCount > 1 {
                 VStack {
@@ -340,7 +358,7 @@ struct CalendarCell: View {
                         Text("\(photoCount)")
                             .font(.system(size: 9, weight: .bold))
                             .padding(5)
-                            .background(Color.black.opacity(0.6))
+                            .background(SlateColor.ink.opacity(0.6))
                             .foregroundColor(.white)
                             .clipShape(Circle())
                             .padding(4)
@@ -349,7 +367,7 @@ struct CalendarCell: View {
             }
         }
         .frame(width: size, height: size)
-        .shadow(color: Color.black.opacity(0.03), radius: 5, x: 0, y: 2)
+        .shadow(color: SlateColor.ink.opacity(0.03), radius: 5, x: 0, y: 2)
     }
 }
 

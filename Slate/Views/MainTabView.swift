@@ -7,19 +7,15 @@ struct MainTabView: View {
     @StateObject private var spaceManager = SpaceManager.shared
     
     @ViewBuilder
-    private func tabButton(icon: String, title: String, index: Int) -> some View {
+    private func tabButton(icon: String, index: Int) -> some View {
         Button(action: { selectedTab = index }) {
-            VStack(spacing: 4) {
-                Image(systemName: icon)
-                    .font(.system(size: 22))
-                Text(title).font(.caption2)
-            }
-            .frame(maxWidth: .infinity)
-            .foregroundColor(selectedTab == index ? .black : .gray)
-            .padding(.bottom, 10)
+            Image(systemName: icon)
+                .font(.system(size: 22))
+                .foregroundColor(selectedTab == index ? SlateColor.paper : Color.white.opacity(0.45))
+                .frame(maxWidth: .infinity)
         }
     }
-    
+
     var body: some View {
         ZStack(alignment: .bottom) {
             // 1. 콘텐츠 영역
@@ -31,45 +27,44 @@ struct MainTabView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.bottom, 80)
-            
-            // 2. 커스텀 하단 바
-            VStack(spacing: 0) {
-                Divider()
-                
-                HStack(alignment: .bottom) {
-                    tabButton(icon: "calendar", title: "Calendar", index: 0)
-                    
-                    cameraButtonView
-                    
-                    tabButton(icon: "person.fill", title: "My Slate", index: 1)
-                }
-                .padding(.horizontal)
-                .frame(height: 70)
-                .background(Color.white)
+            .padding(.bottom, 90)
+
+            // 2. 다크 pill 플로팅 내비
+            HStack(spacing: 0) {
+                tabButton(icon: "calendar", index: 0)
+                cameraButtonView
+                tabButton(icon: "person.fill", index: 1)
             }
-            .background(Color.white.ignoresSafeArea(edges: .bottom))
+            .padding(.horizontal, 30)
+            .frame(height: 62)
+            .background(
+                Capsule()
+                    .fill(SlateColor.navBar)
+                    .shadow(color: SlateColor.ink.opacity(0.25), radius: 16, x: 0, y: 8)
+            )
+            .padding(.horizontal, 28)
+            .padding(.bottom, 14)
         }
+        .background(SlateColor.paper.ignoresSafeArea())
         .fullScreenCover(isPresented: $isCameraPresented) {
             CameraView()
         }
         .environmentObject(spaceManager)
     }
-    
+
     private var cameraButtonView: some View {
         Button(action: { isCameraPresented = true }) {
             ZStack {
                 Circle()
-                    .fill(Color(red: 0.41, green: 0.81, blue: 0.44))
-                    .frame(width: 74, height: 74)
-                    .shadow(color: .black.opacity(0.15), radius: 8, x: 0, y: 4)
-                
+                    .fill(SlateColor.leaf)
+                    .frame(width: 56, height: 56)
                 Image(systemName: "camera.fill")
-                    .font(.system(size: 26))
-                    .foregroundColor(.white)
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(SlateColor.leafDeep)
             }
         }
-        .offset(y: -25)
+        .frame(maxWidth: .infinity)
+        .offset(y: -12)
     }
 }
 

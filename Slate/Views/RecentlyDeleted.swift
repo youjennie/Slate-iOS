@@ -35,7 +35,7 @@ struct RecentlyDeletedView: View {
                         Image(systemName: "chevron.left")
                     }
                     .font(.system(size: 17, weight: .medium))
-                    .foregroundColor(.black)
+                    .foregroundColor(SlateColor.ink)
                 }
                 
                 Spacer()
@@ -55,7 +55,7 @@ struct RecentlyDeletedView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            .background(Color.white)
+            .background(SlateColor.paperSoft)
             
             // (B) 삭제된 사진 그리드
             ScrollView {
@@ -65,19 +65,19 @@ struct RecentlyDeletedView: View {
                             Spacer(minLength: 200)
                             Image(systemName: "trash.slash")
                                 .font(.system(size: 40))
-                                .foregroundColor(.gray.opacity(0.3))
+                                .foregroundColor(SlateColor.inkFaint.opacity(0.3))
                             Text("No recently deleted photos.")
-                                .foregroundColor(.secondary)
+                                .foregroundColor(SlateColor.inkSoft)
                             Text("Deleted photos will appear here for 30 days.")
                                 .font(.system(size: 13))
-                                .foregroundColor(.gray.opacity(0.6))
+                                .foregroundColor(SlateColor.inkFaint.opacity(0.6))
                         }
                         .frame(maxWidth: .infinity)
                     } else {
                         // ── 30일 안내 ──
                         Text("Photos will be permanently deleted after 30 days.")
                             .font(.system(size: 13))
-                            .foregroundColor(.gray)
+                            .foregroundColor(SlateColor.inkSoft)
                             .padding(.horizontal, 16)
                         
                         ForEach(groupedRecords, id: \.0) { date, records in
@@ -113,7 +113,7 @@ struct RecentlyDeletedView: View {
                                                     Button(action: { restoreRecord(record) }) {
                                                         Image(systemName: "arrow.uturn.backward.circle.fill")
                                                             .font(.system(size: 20))
-                                                            .foregroundColor(.green)
+                                                            .foregroundColor(SlateColor.leafDeep)
                                                             .background(Color.white.clipShape(Circle()))
                                                     }
                                                     .frame(maxWidth: .infinity)
@@ -147,7 +147,7 @@ struct RecentlyDeletedView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
-        .background(Color(red: 0.98, green: 0.98, blue: 0.98))
+        .background(SlateColor.paper)
     }
     
     // ── 복구: isDeleted → false ──

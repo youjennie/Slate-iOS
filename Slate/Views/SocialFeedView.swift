@@ -18,7 +18,7 @@ struct SocialFeedView: View {
                     Button(action: { dismiss() }) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 20, weight: .medium))
-                            .foregroundColor(.black)
+                            .foregroundColor(SlateColor.ink)
                     }
 
                     Spacer()
@@ -32,7 +32,7 @@ struct SocialFeedView: View {
                             selectedTab = .all
                         }
                     }
-                    .background(Color.gray.opacity(0.1))
+                    .background(SlateColor.inkFaint.opacity(0.1))
                     .cornerRadius(20)
 
                     Spacer()
@@ -52,9 +52,9 @@ struct SocialFeedView: View {
                                 Spacer(minLength: 160)
                                 Image(systemName: "person.2")
                                     .font(.system(size: 40))
-                                    .foregroundColor(.gray.opacity(0.3))
+                                    .foregroundColor(SlateColor.inkFaint.opacity(0.3))
                                 Text(selectedTab == .following ? "Follow people to see their streaks." : "No moments yet.")
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(SlateColor.inkSoft)
                             }
                         } else {
                             ForEach(items) { item in
@@ -86,13 +86,13 @@ struct FeedItemView: View {
             // 헤더: 프로필 & 이름 & 팔로우 버튼
             HStack {
                 Circle()
-                    .fill(Color.gray.opacity(0.2))
+                    .fill(SlateColor.inkFaint.opacity(0.2))
                     .frame(width: 40, height: 40)
                     .overlay(Text(item.authorName.prefix(1)).fontWeight(.bold))
 
                 VStack(alignment: .leading) {
                     Text(item.authorName).fontWeight(.bold)
-                    Text(item.timeAgo).font(.caption).foregroundColor(.gray)
+                    Text(item.timeAgo).font(.caption).foregroundColor(SlateColor.inkSoft)
                 }
 
                 Spacer()
@@ -114,7 +114,7 @@ struct FeedItemView: View {
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                    .background(isFollowing ? Color.gray.opacity(0.1) : Color.black)
+                    .background(isFollowing ? SlateColor.inkFaint.opacity(0.1) : SlateColor.ink)
                     .foregroundColor(isFollowing ? .black : .white)
                     .cornerRadius(10)
                 }
@@ -128,7 +128,7 @@ struct FeedItemView: View {
             LazyVGrid(columns: columns, spacing: 8) {
                 ForEach(1...max(item.photoCount, 1), id: \.self) { i in
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.gray.opacity(0.1))
+                        .fill(SlateColor.inkFaint.opacity(0.1))
                         .frame(height: 65)
                         .overlay(
                             Text("\(i)")
@@ -142,7 +142,7 @@ struct FeedItemView: View {
 
             Text("Show your support!")
                 .font(.system(size: 13))
-                .foregroundColor(.secondary)
+                .foregroundColor(SlateColor.inkSoft)
 
             // 리액션 버튼 섹션 (데이터 주도)
             HStack(spacing: 12) {
@@ -154,7 +154,7 @@ struct FeedItemView: View {
         .padding()
         .background(Color.white.opacity(0.8))
         .cornerRadius(20)
-        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+        .shadow(color: SlateColor.ink.opacity(0.05), radius: 8, x: 0, y: 4)
     }
 }
 
@@ -190,10 +190,10 @@ struct ReactionButton: View {
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
-            .background(isClicked ? Color.gray.opacity(0.2) : Color.gray.opacity(0.05))
+            .background(isClicked ? SlateColor.inkFaint.opacity(0.2) : SlateColor.inkFaint.opacity(0.05))
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(isClicked ? Color.gray.opacity(0.3) : Color.clear, lineWidth: 1)
+                    .stroke(isClicked ? SlateColor.inkFaint.opacity(0.3) : Color.clear, lineWidth: 1)
             )
             .cornerRadius(12)
             .foregroundColor(isClicked ? .black : .gray)

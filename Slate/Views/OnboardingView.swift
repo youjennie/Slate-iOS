@@ -12,7 +12,7 @@ struct OnboardingView: View {
     }
 
     let slateDark = Color(hex: "#414141")
-    let slateWhite = Color(red: 183/255, green: 194/255, blue: 198/255)
+    let slateWhite = SlateColor.leafDeep
 
     var body: some View {
         GeometryReader { geometry in
@@ -36,7 +36,7 @@ struct OnboardingView: View {
                     VStack(spacing: 20) {
                         Text("What should we call you?")
                             .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(Color.black.opacity(0.5))
+                            .foregroundColor(SlateColor.ink.opacity(0.5))
                         
                         HStack {
                             TextField("Your Name", text: $userName)
@@ -49,7 +49,7 @@ struct OnboardingView: View {
                                 Image(systemName: "chevron.right.circle.fill")
                                     .resizable()
                                     .frame(width: 44, height: 44)
-                                    .foregroundColor(userName.isEmpty ? .gray.opacity(0.3) : slateDark)
+                                    .foregroundColor(userName.isEmpty ? SlateColor.inkFaint.opacity(0.3) : slateDark)
                                     .padding(8)
                             }
                             .disabled(userName.isEmpty)
@@ -62,12 +62,12 @@ struct OnboardingView: View {
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 32)
-                                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+                                .stroke(SlateColor.inkFaint.opacity(0.2), lineWidth: 1)
                         )
                         
                         Text("You can change this anytime.")
                             .font(.system(size: 13))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(SlateColor.inkSoft)
                     }
                     .padding(.bottom, 60)
                     
@@ -101,19 +101,7 @@ struct OnboardingView: View {
     }
 }
 
-// Color Hex 확장
-extension Color {
-    init(hex: String) {
-        let scanner = Scanner(string: hex)
-        _ = scanner.scanString("#")
-        var rgb: UInt64 = 0
-        scanner.scanHexInt64(&rgb)
-        let r = Double((rgb >> 16) & 0xFF) / 255.0
-        let g = Double((rgb >>  8) & 0xFF) / 255.0
-        let b = Double((rgb >>  0) & 0xFF) / 255.0
-        self.init(red: r, green: g, blue: b)
-    }
-}
+// Color(hex:) 확장은 Theme/SlateTheme.swift로 이동
 
 #Preview {
     let schema = Schema([PhotoRecord.self, Space.self])

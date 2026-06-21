@@ -20,9 +20,9 @@ struct MySlateView: View {
     @Query(sort: \Space.createdAt) private var spaces: [Space]
 
     // 형님의 컨셉 컬러
-    let slateWhite = Color(red: 183/255, green: 194/255, blue: 198/255)
-    let slateGreen = Color(red: 186/255, green: 206/255, blue: 156/255)
-    let cameraGreen = Color(red: 0.41, green: 0.81, blue: 0.44)
+    let slateWhite = SlateColor.leafDeep
+    let slateGreen = SlateColor.leaf
+    let cameraGreen = SlateColor.leaf
 
     // ── 실시간 계산 (하드코딩 제거) ──
     private var progress: SlateProgress {
@@ -47,6 +47,55 @@ struct MySlateView: View {
             ?? ""
     }
 
+    /// 포커스 게이지용: Space별 활동 비중 (생성 순서대로 안정 색상)
+    private var focusSegments: [FocusSegment] {
+        let active = allRecords.filter { !$0.isDeleted }
+        guard !active.isEmpty else { return [] }
+        var result: [FocusSegment] = []
+        for (index, space) in spaces.enumerated() {
+            let count = active.filter { $0.spaceTag == space.name }.count
+            if count > 0 {
+                result.append(FocusSegment(name: space.name,
+                                           value: Double(count),
+                                           color: SlateColor.forSpace(index)))
+            }
+        }
+        return result
+    }
+
+    /// 주간 활동 차트용: 최근 7일 기록 수
+    private var weeklyBars: [ActivityBar] {
+        let cal = Calendar.current
+        let active = allRecords.filter { !$0.isDeleted }
+        let today = cal.startOfDay(for: Date())
+        let symbols = cal.veryShortWeekdaySymbols
+        var bars: [ActivityBar] = []
+        for offset in stride(from: 6, through: 0, by: -1) {
+            guard let day = cal.date(byAdding: .day, value: -offset, to: today) else { continue }
+            let count = active.filter { cal.isDate($0.date, inSameDayAs: day) }.count
+            let wd = cal.component(.weekday, from: day) - 1
+            let label = symbols.indices.contains(wd) ? symbols[wd] : ""
+            bars.append(ActivityBar(label: label, value: count,
+                                    color: count == 0 ? SlateColor.leafSoft : SlateColor.leaf))
+        }
+        return bars
+    }
+
+    /// 포커스 게이지 범례 칩
+    @ViewBuilder
+    private func legendChip(_ seg: FocusSegment) -> some View {
+        let total = max(focusSegments.reduce(0) { $0 + $1.value }, 1)
+        let pct = Int((seg.value / total * 100).rounded())
+        HStack(spacing: 6) {
+            Circle().fill(seg.color).frame(width: 9, height: 9)
+            Text("\(seg.name) \(pct)%")
+                .font(.slateSans(11, weight: .semibold))
+                .foregroundColor(SlateColor.inkSoft)
+        }
+        .padding(.horizontal, 10).padding(.vertical, 5)
+        .background(Capsule().fill(SlateColor.paperSoft))
+    }
+
     init(onBack: (() -> Void)? = nil) {
         self.onBack = onBack
     }
@@ -59,7 +108,7 @@ struct MySlateView: View {
             ZStack {
                 // [1] 배경 레이어
                 ZStack {
-                    Color(red: 0.98, green: 0.98, blue: 0.98)
+                    SlateColor.paper
                     Image("background_paper")
                         .resizable()
                         .aspectRatio(contentMode: .fill)
@@ -76,7 +125,7 @@ struct MySlateView: View {
                         Button(action: { goBackToCalendar() }) {
                             Image(systemName: "chevron.left")
                                 .font(.system(size: 20, weight: .medium))
-                                .foregroundColor(.black)
+                                .foregroundColor(SlateColor.ink)
                                 .padding(10)
                                 .contentShape(Rectangle())
                         }
@@ -91,14 +140,14 @@ struct MySlateView: View {
                         NavigationLink(destination: MySlateSettingsView()) {
                             Image(systemName: "gearshape")
                                 .font(.system(size: 20))
-                                .foregroundColor(.black)
+                                .foregroundColor(SlateColor.ink)
                                 .padding(10)
                         }
                     }
                     .padding(.top, 10).padding(.bottom, 10)
                     .padding(.horizontal, 10)
                     .frame(height: 60)
-                    .background(Color.white)
+                    .background(SlateColor.paperSoft)
                     .shadow(color: .black.opacity(0.05), radius: 5, y: 2)
 
                     ScrollView(showsIndicators: false) {
@@ -113,13 +162,13 @@ struct MySlateView: View {
                                     .padding(.top, -10)
                                 
                                 Text("Your Future-Self Awaits")
-                                    .font(.system(size: 26, weight: .bold))
+                                    .font(.slateSerif(26, weight: .bold))
                                     .padding(.top, 5)
                                     .padding(.bottom, 10)
                                 
                                 Text("Slate turns your moments into\na picture of who you're becoming.")
                                     .font(.system(size: 15))
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(SlateColor.inkSoft)
                                     .multilineTextAlignment(.center)
                                     .lineSpacing(2)
                             }
@@ -131,41 +180,54 @@ struct MySlateView: View {
                                 futureCircle
                             }
 
-                            // 5. 프로그레스 섹션 (실시간 계산)
-                            VStack(spacing: 20) {
-                                // ── 실시간 계산된 Progress % ──
-                                Text("\(Int(progress.progressPercent))% closer")
-                                    .font(.system(size: 22))
-                                    .foregroundColor(.gray)
-                                
-                                VStack(spacing: 12) {
-                                    GeometryReader { geo in
-                                        ZStack(alignment: .leading) {
-                                            Capsule().fill(Color.black.opacity(0.05)).frame(height: 12)
-                                            Capsule()
-                                                .fill(slateWhite)
-                                                .frame(width: geo.size.width * CGFloat(progress.progressPercent / 100.0), height: 12)
+                            // 5. 포커스 게이지 — 어디에 집중하는지
+                            VStack(spacing: 14) {
+                                Text("Where you're focusing")
+                                    .font(.slateSerif(20, weight: .bold))
+                                    .foregroundColor(SlateColor.ink)
+                                Text("\(Int(progress.progressPercent))% closer to your future self")
+                                    .font(.slateSans(13))
+                                    .foregroundColor(SlateColor.inkSoft)
+
+                                FocusGaugeView(
+                                    segments: focusSegments,
+                                    centerValue: "\(progress.totalDays)",
+                                    centerLabel: "days with Slate"
+                                )
+
+                                if !focusSegments.isEmpty {
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack(spacing: 8) {
+                                            ForEach(focusSegments) { seg in
+                                                legendChip(seg)
+                                            }
                                         }
-                                    }
-                                    .frame(height: 12)
-                                    
-                                    HStack {
-                                        Text("Past").font(.system(size: 12, weight: .bold)).foregroundColor(.gray)
-                                        Spacer()
-                                        Text("Future").font(.system(size: 12, weight: .bold)).foregroundColor(.gray)
+                                        .padding(.horizontal, 30)
                                     }
                                 }
-                                .padding(.horizontal, 30)
-                                
-                                // ── Streak & Days 표시 ──
-                                HStack(spacing: 30) {
-                                    statBadge(value: "\(progress.totalDays)", label: "Days")
-                                    statBadge(value: "\(progress.currentStreak)", label: "Streak")
-                                    statBadge(value: "\(progress.longestStreak)", label: "Best")
-                                }
-                                .padding(.top, 10)
                             }
-                            
+                            .padding(.top, 10)
+
+                            // 6. 주간 활동 — 인터랙티브
+                            VStack(spacing: 12) {
+                                HStack {
+                                    Text("This week")
+                                        .font(.slateSerif(20, weight: .bold))
+                                        .foregroundColor(SlateColor.ink)
+                                    Spacer()
+                                }
+                                ActivityChartView(bars: weeklyBars)
+                            }
+                            .padding(.horizontal, 30)
+
+                            // 7. 통계
+                            HStack(spacing: 30) {
+                                statBadge(value: "\(progress.totalDays)", label: "Days")
+                                statBadge(value: "\(progress.currentStreak)", label: "Streak")
+                                statBadge(value: "\(progress.longestStreak)", label: "Best")
+                            }
+                            .padding(.top, 6)
+
                             Spacer().frame(height: 50)
                         }
                     }
@@ -185,7 +247,7 @@ struct MySlateView: View {
     private var futureCircle: some View {
         VStack(spacing: 12) {
             ZStack {
-                Circle().fill(Color(red: 0.9, green: 0.9, blue: 0.9)).frame(width: 135, height: 135)
+                Circle().fill(SlateColor.sand).frame(width: 135, height: 135)
                 if let futureImage {
                     Image(uiImage: futureImage).resizable().scaledToFill()
                         .frame(width: 135, height: 135).clipShape(Circle())
@@ -195,7 +257,7 @@ struct MySlateView: View {
                     VStack(spacing: 6) {
                         Image(systemName: "sparkles").font(.system(size: 30)).foregroundColor(slateGreen)
                         Text(SlateConfig.isImageGenerationAvailable ? "Tap to generate" : "Coming soon")
-                            .font(.system(size: 11)).foregroundColor(.gray)
+                            .font(.system(size: 11)).foregroundColor(SlateColor.inkSoft)
                     }
                 }
             }
@@ -206,7 +268,7 @@ struct MySlateView: View {
                     generateFutureSelf()
                 }
             }
-            Text("After").font(.system(size: 14, weight: .medium)).foregroundColor(.gray)
+            Text("After").font(.system(size: 14, weight: .medium)).foregroundColor(SlateColor.inkSoft)
         }
     }
 
@@ -251,7 +313,7 @@ struct MySlateView: View {
     private func comparisonCircle(image: UIImage?, label: String, isFuture: Bool) -> some View {
         VStack(spacing: 12) {
             ZStack {
-                Circle().fill(Color(red: 0.9, green: 0.9, blue: 0.9)).frame(width: 135, height: 135)
+                Circle().fill(SlateColor.sand).frame(width: 135, height: 135)
                 if let image {
                     Image(uiImage: image).resizable().scaledToFill()
                         .frame(width: 135, height: 135).clipShape(Circle())
@@ -259,7 +321,7 @@ struct MySlateView: View {
                     // AI 미래자아 이미지 생성은 다음 단계 → 안내 플레이스홀더
                     VStack(spacing: 6) {
                         Image(systemName: "sparkles").font(.system(size: 34)).foregroundColor(slateGreen)
-                        Text("Coming soon").font(.system(size: 11)).foregroundColor(.gray)
+                        Text("Coming soon").font(.system(size: 11)).foregroundColor(SlateColor.inkSoft)
                     }
                 } else {
                     // 시작점 사진을 아직 안 찍은 상태
@@ -268,7 +330,7 @@ struct MySlateView: View {
             }
             .overlay(Circle().stroke(Color.white, lineWidth: 3))
             .shadow(color: .black.opacity(0.08), radius: 8)
-            Text(label).font(.system(size: 14, weight: .medium)).foregroundColor(.gray)
+            Text(label).font(.system(size: 14, weight: .medium)).foregroundColor(SlateColor.inkSoft)
         }
     }
     
@@ -277,10 +339,10 @@ struct MySlateView: View {
         VStack(spacing: 4) {
             Text(value)
                 .font(.system(size: 24, weight: .bold))
-                .foregroundColor(.black)
+                .foregroundColor(SlateColor.ink)
             Text(label)
                 .font(.system(size: 12))
-                .foregroundColor(.gray)
+                .foregroundColor(SlateColor.inkSoft)
         }
     }
 }

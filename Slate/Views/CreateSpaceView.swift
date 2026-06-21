@@ -32,7 +32,7 @@ struct CreateSpaceView: View {
                 Button(action: { dismiss() }) {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 20, weight: .semibold))
-                        .foregroundColor(.black)
+                        .foregroundColor(SlateColor.ink)
                 }
                 Spacer()
             }
@@ -44,10 +44,10 @@ struct CreateSpaceView: View {
                 VStack(alignment: .leading, spacing: 30) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Create Your Space")
-                            .font(.system(size: 32, weight: .bold))
+                            .font(.slateSerif(32, weight: .bold))
                         Text("What is this space about?")
                             .font(.system(size: 18))
-                            .foregroundColor(.gray)
+                            .foregroundColor(SlateColor.inkSoft)
                     }
                     
                     LazyVGrid(columns: columns, spacing: 12) {
@@ -88,7 +88,7 @@ struct CreateSpaceView: View {
                 .font(.system(size: 14, weight: .medium))
                 .padding(.horizontal, 10)
                 .frame(height: 45)
-                .background(RoundedRectangle(cornerRadius: 25).stroke(Color.green, lineWidth: 2))
+                .background(RoundedRectangle(cornerRadius: 25).stroke(SlateColor.leafDeep, lineWidth: 2))
                 .multilineTextAlignment(.center)
             } else {
                 Button(action: { isEditingCustomTag = true }) {
@@ -99,8 +99,8 @@ struct CreateSpaceView: View {
                     .font(.system(size: 15, weight: .medium))
                     .frame(maxWidth: .infinity)
                     .frame(height: 45)
-                    .background(RoundedRectangle(cornerRadius: 25).stroke(selectedTag == customTagName ? Color.green : Color.gray.opacity(0.3)))
-                    .foregroundColor(selectedTag == customTagName ? .green : .gray)
+                    .background(RoundedRectangle(cornerRadius: 25).stroke(selectedTag == customTagName ? SlateColor.leafDeep : SlateColor.inkFaint.opacity(0.3)))
+                    .foregroundColor(selectedTag == customTagName ? SlateColor.leafDeep : .gray)
                 }
             }
         }
@@ -114,7 +114,7 @@ struct CreateSpaceView: View {
                 TextField("At the moment, I'm...", text: $currentMomentText, axis: .vertical)
                     .padding()
                     .frame(minHeight: 80, alignment: .top)
-                    .background(RoundedRectangle(cornerRadius: 15).stroke(Color.gray.opacity(0.3)))
+                    .background(RoundedRectangle(cornerRadius: 15).stroke(SlateColor.inkFaint.opacity(0.3)))
             }
             VStack(alignment: .leading, spacing: 12) {
                 Text("What does your next phase look and feel like? (*)")
@@ -122,7 +122,7 @@ struct CreateSpaceView: View {
                 TextField("In the future, I'll...", text: $futureSelfText, axis: .vertical)
                     .padding()
                     .frame(minHeight: 80, alignment: .top)
-                    .background(RoundedRectangle(cornerRadius: 15).stroke(Color.gray.opacity(0.3)))
+                    .background(RoundedRectangle(cornerRadius: 15).stroke(SlateColor.inkFaint.opacity(0.3)))
             }
         }
     }
@@ -146,7 +146,7 @@ struct CreateSpaceView: View {
                                         Text("\(selectedImages.count)")
                                             .font(.system(size: 9, weight: .bold))
                                             .padding(5)
-                                            .background(Color.black.opacity(0.6))
+                                            .background(SlateColor.ink.opacity(0.6))
                                             .foregroundColor(.white)
                                             .clipShape(Circle())
                                             .padding(8)
@@ -155,14 +155,14 @@ struct CreateSpaceView: View {
                             )
                     } else {
                         VStack(spacing: 12) {
-                            Image(systemName: "camera").font(.system(size: 30)).foregroundColor(.gray)
-                            Text("This is for you, not for anyone else").font(.system(size: 14)).foregroundColor(.gray)
+                            Image(systemName: "camera").font(.system(size: 30)).foregroundColor(SlateColor.inkSoft)
+                            Text("This is for you, not for anyone else").font(.system(size: 14)).foregroundColor(SlateColor.inkSoft)
                         }
                     }
                 }
                 .frame(maxWidth: .infinity)
                 .frame(height: 150)
-                .background(RoundedRectangle(cornerRadius: 15).stroke(style: StrokeStyle(lineWidth: 1, dash: [5])).foregroundColor(.gray.opacity(0.5)))
+                .background(RoundedRectangle(cornerRadius: 15).stroke(style: StrokeStyle(lineWidth: 1, dash: [5])).foregroundColor(SlateColor.inkFaint.opacity(0.5)))
             }
         }
     }
@@ -174,7 +174,7 @@ struct CreateSpaceView: View {
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .frame(height: 60)
-                .background(RoundedRectangle(cornerRadius: 15).fill(isFormValid ? Color(red: 186/255, green: 206/255, blue: 156/255) : Color.gray.opacity(0.4)))
+                .background(RoundedRectangle(cornerRadius: 15).fill(isFormValid ? SlateColor.leaf : SlateColor.inkFaint.opacity(0.4)))
         }
         .padding(.vertical, 10)
     }
@@ -223,8 +223,8 @@ struct TagButton: View {
             .font(.system(size: 15, weight: .medium))
             .frame(maxWidth: .infinity)
             .frame(height: 45)
-            .background(RoundedRectangle(cornerRadius: 25).stroke(isSelected ? Color.green : Color.gray.opacity(0.3), lineWidth: isSelected ? 2 : 1))
-            .foregroundColor(isSelected ? .green : .gray)
+            .background(RoundedRectangle(cornerRadius: 25).stroke(isSelected ? SlateColor.leafDeep : SlateColor.inkFaint.opacity(0.3), lineWidth: isSelected ? 2 : 1))
+            .foregroundColor(isSelected ? SlateColor.leafDeep : .gray)
         }
     }
 }

@@ -53,23 +53,23 @@ struct CameraView: View {
                         } else {
                             // 카메라 권한 없을 때 플레이스홀더
                             Rectangle()
-                                .fill(Color.gray.opacity(0.1))
+                                .fill(SlateColor.inkFaint.opacity(0.1))
                                 .frame(width: screenWidth, height: cameraHeight)
                                 .overlay(
                                     VStack(spacing: 12) {
                                         Image(systemName: "camera.fill")
                                             .font(.system(size: 40))
-                                            .foregroundColor(.gray)
+                                            .foregroundColor(SlateColor.inkSoft)
                                         Text("Camera access required")
                                             .font(.system(size: 14))
-                                            .foregroundColor(.gray)
+                                            .foregroundColor(SlateColor.inkSoft)
                                         Button("Open Settings") {
                                             if let url = URL(string: UIApplication.openSettingsURLString) {
                                                 UIApplication.shared.open(url)
                                             }
                                         }
                                         .font(.system(size: 14, weight: .bold))
-                                        .foregroundColor(.blue)
+                                        .foregroundColor(SlateColor.skyDeep)
                                     }
                                 )
                         }
@@ -123,7 +123,7 @@ struct CameraView: View {
             Button(action: { dismiss() }) {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.black)
+                    .foregroundColor(SlateColor.ink)
             }
             Spacer()
             
@@ -131,14 +131,14 @@ struct CameraView: View {
             Button(action: { cameraService.toggleCamera() }) {
                 Image(systemName: "camera.rotate")
                     .font(.system(size: 18))
-                    .foregroundColor(.black)
+                    .foregroundColor(SlateColor.ink)
             }
             
             Spacer()
             
             HStack(spacing: 8) {
-                Text("Auto Save").font(.system(size: 14)).foregroundColor(.black)
-                Toggle("", isOn: $autoSave).labelsHidden().tint(Color(red: 0.41, green: 0.81, blue: 0.44))
+                Text("Auto Save").font(.system(size: 14)).foregroundColor(SlateColor.ink)
+                Toggle("", isOn: $autoSave).labelsHidden().tint(SlateColor.leaf)
             }
         }
         .padding(.horizontal, 20).frame(height: 50)
@@ -161,7 +161,7 @@ struct CameraView: View {
             let cameraHeight = screenWidth / currentAspectRatio
             let renderer = ImageRenderer(content:
                 ZStack {
-                    Rectangle().fill(Color.gray.opacity(0.1))
+                    Rectangle().fill(SlateColor.inkFaint.opacity(0.1))
                     filterOverlayView(index: selectedFilterIndex)
                 }
                 .frame(width: screenWidth, height: cameraHeight)
@@ -219,7 +219,7 @@ struct CameraView: View {
                 ForEach(0..<4) { index in
                     VStack(spacing: 8) {
                         ZStack {
-                            Circle().fill(selectedFilterIndex == index ? Color.black : Color.gray.opacity(0.1)).frame(width: 55, height: 55)
+                            Circle().fill(selectedFilterIndex == index ? SlateColor.leafDeep : SlateColor.inkFaint.opacity(0.1)).frame(width: 55, height: 55)
                             Text("\(index + 1)").font(.system(size: 16, weight: .bold)).foregroundColor(selectedFilterIndex == index ? .white : .black)
                         }
                         Text("Style \(index + 1)").font(.system(size: 10)).foregroundColor(.black.opacity(selectedFilterIndex == index ? 1 : 0.4))
@@ -246,7 +246,7 @@ struct CameraView: View {
             // 셔터 버튼
             Button(action: { takePhotoAndSave() }) {
                 Circle()
-                    .fill(Color(red: 0.0, green: 0.85, blue: 0.45))
+                    .fill(SlateColor.leafDeep)
                     .frame(width: 75, height: 75)
                     .overlay(Image(systemName: "plus").font(.system(size: 28, weight: .bold)).foregroundColor(.white))
             }
@@ -258,7 +258,7 @@ struct CameraView: View {
                 Image(systemName: "rectangle.portrait")
                     .font(.system(size: 22))
                     .foregroundColor(.black.opacity(currentAspectRatio == 3/4 ? 1 : 0.2))
-                    .overlay(RoundedRectangle(cornerRadius: 2).stroke(Color.black.opacity(currentAspectRatio == 3/4 ? 1 : 0.2), lineWidth: 2).frame(width: 16, height: 22))
+                    .overlay(RoundedRectangle(cornerRadius: 2).stroke(SlateColor.ink.opacity(currentAspectRatio == 3/4 ? 1 : 0.2), lineWidth: 2).frame(width: 16, height: 22))
             }
         }
         .padding(.horizontal, 60).padding(.bottom, 30)

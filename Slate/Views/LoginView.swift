@@ -44,8 +44,8 @@ struct LoginView: View {
                         // v1.1에서 Firebase Auth Google Provider 추가 예정
                         
                         Text("More sign-in options coming soon")
-                            .font(.system(size: 13))
-                            .foregroundColor(.gray.opacity(0.6))
+                            .font(.slateSans(13))
+                            .foregroundColor(SlateColor.inkSoft)
                             .padding(.top, 5)
                         
                         Spacer().frame(height: 40)

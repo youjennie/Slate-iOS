@@ -17,7 +17,7 @@ struct MonthShareDetailView: View {
                         .padding()
                 }
             }
-            .background(Color(red: 0.98, green: 0.98, blue: 0.98))
+            .background(SlateColor.paper)
             .navigationTitle("Share your Slate")
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden(true)
@@ -25,7 +25,7 @@ struct MonthShareDetailView: View {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button(action: { dismiss() }) {
                         Image(systemName: "chevron.left")
-                            .foregroundColor(.black)
+                            .foregroundColor(SlateColor.ink)
                     }
                 }
                 
@@ -34,7 +34,7 @@ struct MonthShareDetailView: View {
                         ShareLink(item: renderedImage,
                                   preview: SharePreview("\(month.formatted(.dateTime.month(.wide))) Slate", image: renderedImage)) {
                             Image(systemName: "square.and.arrow.up")
-                                .foregroundColor(.black)
+                                .foregroundColor(SlateColor.ink)
                         }
                     }
                 }

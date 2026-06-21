@@ -95,19 +95,19 @@ struct DailyPhotoView: View {
     private var headerSection: some View {
         HStack {
             Button(action: { dismiss() }) {
-                Image(systemName: "chevron.left").font(.system(size: 18, weight: .bold)).foregroundColor(.black)
+                Image(systemName: "chevron.left").font(.system(size: 18, weight: .bold)).foregroundColor(SlateColor.ink)
             }
             Spacer()
             VStack(spacing: 2) {
                 Text("\(selectedCategory) Slate Feed").font(.system(size: 16, weight: .bold))
-                Text(currentTime.formatted(date: .complete, time: .omitted)).font(.system(size: 11)).foregroundColor(.secondary)
+                Text(currentTime.formatted(date: .complete, time: .omitted)).font(.system(size: 11)).foregroundColor(SlateColor.inkSoft)
             }
             Spacer()
             NavigationLink(destination: RecentlyDeletedView()) {
                 Image(systemName: "trash").font(.system(size: 18)).padding(.trailing, 16)
             }
         }
-        .padding(.horizontal, 20).padding(.vertical, 12).background(Color.white)
+        .padding(.horizontal, 20).padding(.vertical, 12).background(SlateColor.paperSoft)
         .onReceive(timer) { currentTime = $0 }
     }
 
@@ -117,7 +117,7 @@ struct DailyPhotoView: View {
         return VStack(alignment: .leading, spacing: 12) {
             Text(day.formatted(.dateTime.month(.wide).day().weekday()))
                 .font(.system(size: 16, weight: .bold))
-                .foregroundColor(Calendar.current.isDateInToday(day) ? .green : .primary)
+                .foregroundColor(Calendar.current.isDateInToday(day) ? SlateColor.leafDeep : .primary)
                 .padding(.horizontal, 20)
             
             LazyVGrid(columns: columns, spacing: 2) {
@@ -136,8 +136,8 @@ struct DailyPhotoView: View {
                     targetDate = day
                     showActionSheet = true
                 }) {
-                    Rectangle().fill(Color.gray.opacity(0.1)).frame(width: cellSize, height: cellSize)
-                        .overlay(Image(systemName: "plus").foregroundColor(.gray))
+                    Rectangle().fill(SlateColor.inkFaint.opacity(0.1)).frame(width: cellSize, height: cellSize)
+                        .overlay(Image(systemName: "plus").foregroundColor(SlateColor.inkSoft))
                 }
             }
             .padding(.horizontal, 20)
@@ -182,11 +182,11 @@ struct MemoInputField: View {
                     modelContext.insert(PhotoRecord(date: day, memo: text, spaceTag: spaceTag))
                 }
             })
-            .font(.system(size: 14)).padding(12).background(Color.gray.opacity(0.05)).cornerRadius(10).padding(.horizontal, 20)
+            .font(.system(size: 14)).padding(12).background(SlateColor.inkFaint.opacity(0.05)).cornerRadius(10).padding(.horizontal, 20)
             
             Rectangle()
                 .stroke(style: StrokeStyle(lineWidth: 1, dash: [3]))
-                .foregroundColor(Color.gray.opacity(0.15))
+                .foregroundColor(SlateColor.inkFaint.opacity(0.15))
                 .frame(height: 1)
                 .padding(.horizontal, 30)
                 .padding(.top, 25)

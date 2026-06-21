@@ -7,9 +7,10 @@ struct MySlateSettingsView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) private var modelContext
     @ObservedObject var spaceManager = SpaceManager.shared
-    
-    let slateWhite = Color(red: 183/255, green: 194/255, blue: 198/255)
-    let slateGreen = Color(red: 186/255, green: 206/255, blue: 156/255)
+    @Query(sort: \Space.createdAt) private var spaces: [Space]
+
+    let slateWhite = SlateColor.leafDeep
+    let slateGreen = SlateColor.leaf
 
     @State private var isEditing = false
     @State private var editedName = ""
@@ -37,7 +38,7 @@ struct MySlateSettingsView: View {
     var body: some View {
         ZStack {
             Group {
-                Color(red: 0.98, green: 0.98, blue: 0.98)
+                SlateColor.paper
                 Image("background_paper")
                     .resizable()
                     .scaledToFill()
@@ -51,7 +52,7 @@ struct MySlateSettingsView: View {
                     Button(action: { dismiss() }) {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 20, weight: .medium))
-                            .foregroundColor(.black)
+                            .foregroundColor(SlateColor.ink)
                             .padding(10)
                     }
                     Spacer()
@@ -176,10 +177,10 @@ struct MySlateSettingsView: View {
                 VStack(spacing: 8) {
                     HStack(spacing: 5) {
                         Text(spaceManager.userName.isEmpty ? "User Name" : spaceManager.userName).font(.system(size: 24, weight: .bold))
-                        Button(action: { isEditing = true }) { Image(systemName: "pencil").foregroundColor(.gray) }
+                        Button(action: { isEditing = true }) { Image(systemName: "pencil").foregroundColor(SlateColor.inkSoft) }
                     }
-                    Text(currentBio).font(.system(size: 15)).foregroundColor(.gray).multilineTextAlignment(.center).padding(.horizontal, 40)
-                    Text("Slate started on January 1, 2026").font(.system(size: 12)).foregroundColor(.gray.opacity(0.5))
+                    Text(currentBio).font(.system(size: 15)).foregroundColor(SlateColor.inkSoft).multilineTextAlignment(.center).padding(.horizontal, 40)
+                    Text("Slate started on January 1, 2026").font(.system(size: 12)).foregroundColor(SlateColor.inkFaint.opacity(0.5))
                 }
             }
         }
@@ -187,12 +188,32 @@ struct MySlateSettingsView: View {
 
     private var keywordSection: some View {
         VStack(alignment: .leading, spacing: 15) {
-            Text("My Slate Keyword").font(.system(size: 15, weight: .bold)).padding(.horizontal, 25)
-            HStack(spacing: 12) {
-                tagView(title: "#Wellness")
-                tagView(title: "#Career")
-                tagView(title: "#Relationship", isInactive: true)
-            }.padding(.horizontal, 25)
+            Text("Your Spaces")
+                .font(.slateSans(15, weight: .bold))
+                .foregroundColor(SlateColor.ink)
+                .padding(.horizontal, 25)
+            if spaces.isEmpty {
+                Text("Create a space to grow your collection.")
+                    .font(.slateSans(13))
+                    .foregroundColor(SlateColor.inkSoft)
+                    .padding(.horizontal, 25)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 14) {
+                        ForEach(Array(spaces.enumerated()), id: \.element.id) { index, space in
+                            StickerBadge(
+                                emoji: SlateEmoji.forSpace(named: space.name),
+                                label: space.name,
+                                color: SlateColor.forSpace(index),
+                                variant: index,
+                                rotation: index % 2 == 0 ? -7 : 6
+                            )
+                        }
+                    }
+                    .padding(.horizontal, 22)
+                    .padding(.vertical, 4)
+                }
+            }
         }
     }
 
@@ -208,7 +229,7 @@ struct MySlateSettingsView: View {
                     Text("AI Future Self").font(.system(size: 16))
                     Spacer()
                     Text(SlateConfig.isImageGenerationAvailable ? "On" : "Set API key")
-                        .font(.system(size: 14)).foregroundColor(.gray)
+                        .font(.system(size: 14)).foregroundColor(SlateColor.inkSoft)
                 }.padding(18)
 
                 // 캐시를 비워 다음 My Slate 방문 시 재생성되도록
@@ -218,9 +239,9 @@ struct MySlateSettingsView: View {
                     showRegenerateConfirm = true
                 }) {
                     HStack {
-                        Text("Regenerate Future Image").font(.system(size: 16)).foregroundColor(.black)
+                        Text("Regenerate Future Image").font(.system(size: 16)).foregroundColor(SlateColor.ink)
                         Spacer()
-                        Image(systemName: "arrow.clockwise").font(.system(size: 14)).foregroundColor(.gray)
+                        Image(systemName: "arrow.clockwise").font(.system(size: 14)).foregroundColor(SlateColor.inkSoft)
                     }.padding(18)
                 }
             }
@@ -232,7 +253,7 @@ struct MySlateSettingsView: View {
                     HStack {
                         Text("Delete Account").font(.system(size: 16)).foregroundColor(.red)
                         Spacer()
-                        Image(systemName: "chevron.right").font(.system(size: 14)).foregroundColor(.gray)
+                        Image(systemName: "chevron.right").font(.system(size: 14)).foregroundColor(SlateColor.inkSoft)
                     }.padding(18)
                 }
             }
@@ -257,7 +278,7 @@ struct MySlateSettingsView: View {
             
             Text("Slate v1.0.0")
                 .font(.system(size: 12))
-                .foregroundColor(.gray.opacity(0.4))
+                .foregroundColor(SlateColor.inkFaint.opacity(0.4))
         }
     }
     
@@ -308,15 +329,10 @@ struct MySlateSettingsView: View {
     }
 
     // --- 공통 부품 함수들 ---
-    private func tagView(title: String, isInactive: Bool = false) -> some View {
-        Text(title).font(.system(size: 14, weight: .medium)).padding(.horizontal, 18).padding(.vertical, 10)
-            .background(RoundedRectangle(cornerRadius: 22).stroke(isInactive ? Color.gray.opacity(0.3) : Color.black, lineWidth: 1.2))
-            .foregroundColor(isInactive ? .gray.opacity(0.4) : .black)
-    }
 
     private func settingGroup<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text(title).font(.system(size: 12, weight: .bold)).foregroundColor(.gray).padding(.leading, 5)
+            Text(title).font(.system(size: 12, weight: .bold)).foregroundColor(SlateColor.inkSoft).padding(.leading, 5)
             VStack(spacing: 0) { content() }.background(RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.7)))
         }
     }
@@ -325,7 +341,7 @@ struct MySlateSettingsView: View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title).font(.system(size: 16))
-                if let sub = subtitle { Text(sub).font(.system(size: 12)).foregroundColor(.gray) }
+                if let sub = subtitle { Text(sub).font(.system(size: 12)).foregroundColor(SlateColor.inkSoft) }
             }
             Spacer()
             Toggle("", isOn: isOn).toggleStyle(SwitchToggleStyle(tint: slateGreen)).labelsHidden()

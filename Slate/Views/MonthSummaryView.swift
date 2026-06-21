@@ -6,7 +6,7 @@ struct MonthSummaryView: View {
     let category: String
     
     let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 5)
-    let slateWhite = Color(red: 183/255, green: 194/255, blue:198/255)
+    let slateWhite = SlateColor.leafDeep
     
     var daysInMonth: Int {
         Calendar.current.range(of: .day, in: .month, for: month)?.count ?? 30
@@ -30,8 +30,8 @@ struct MonthSummaryView: View {
                     .padding(.leading, -27)
                 
                 Text(month.formatted(.dateTime.month(.wide)))
-                    .font(.system(size: 54, weight: .black))
-                    .foregroundColor(Color(white: 0.3))
+                    .font(.slateSerif(54, weight: .black))
+                    .foregroundColor(SlateColor.ink)
             }
             .frame(maxWidth: .infinity, alignment: .center)
             .padding(.top, 20)
@@ -39,7 +39,7 @@ struct MonthSummaryView: View {
 
             Text("\(SpaceManager.shared.userName.isEmpty ? "My" : SpaceManager.shared.userName) Slate Moments")
                     .font(.system(size: 18))
-                    .foregroundColor(.gray)
+                    .foregroundColor(SlateColor.inkSoft)
                     .padding(.leading, 5)
                     .offset(y: 20)
                     .padding(.bottom,20)
@@ -65,17 +65,17 @@ struct MonthSummaryView: View {
                 HStack(alignment: .lastTextBaseline, spacing: 5) {
                     Text("\(recordedDaysCount)")
                         .font(.system(size: 23, weight: .bold))
-                        .foregroundColor(Color(white: 0.5))
+                        .foregroundColor(SlateColor.inkSoft)
 
                     Text("/\(daysInMonth) Days with Slate")
                         .font(.system(size: 20))
-                        .foregroundColor(.gray)
+                        .foregroundColor(SlateColor.inkSoft)
                 }
                 
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
                         Capsule()
-                            .fill(Color.gray.opacity(0.1))
+                            .fill(SlateColor.inkFaint.opacity(0.1))
                             .frame(height: 12)
                         
                         Capsule()
@@ -108,14 +108,14 @@ struct SummaryCell: View {
                     .clipShape(RoundedRectangle(cornerRadius: 15))
             } else {
                 RoundedRectangle(cornerRadius: 15)
-                    .fill(Color.gray.opacity(0.05))
+                    .fill(SlateColor.inkFaint.opacity(0.05))
                     .frame(width: 60, height: 60)
-                    .overlay(Circle().fill(Color.gray.opacity(0.2)).frame(width: 4, height: 4))
+                    .overlay(Circle().fill(SlateColor.inkFaint.opacity(0.2)).frame(width: 4, height: 4))
             }
             
             Text("\(day)")
                 .font(.system(size: 12, weight: .bold))
-                .foregroundColor(image == nil ? .gray.opacity(0.5) : .white)
+                .foregroundColor(image == nil ? SlateColor.inkFaint.opacity(0.5) : .white)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .padding(6)
         }
@@ -139,5 +139,5 @@ struct SummaryCell: View {
         records: sampleRecords,
         category: "Daily"
     )
-    .background(Color.gray.opacity(0.1))
+    .background(SlateColor.inkFaint.opacity(0.1))
 }
