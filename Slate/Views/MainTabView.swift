@@ -2,7 +2,8 @@ import SwiftUI
 import SwiftData
 
 struct MainTabView: View {
-    @State private var selectedTab = 0
+    // 테스트 인자 `-startMySlate`로 My Slate 탭에서 시작 (릴리즈 영향 없음)
+    @State private var selectedTab = ProcessInfo.processInfo.arguments.contains("-startMySlate") ? 1 : 0
     @State private var isCameraPresented = false
     @StateObject private var spaceManager = SpaceManager.shared
     

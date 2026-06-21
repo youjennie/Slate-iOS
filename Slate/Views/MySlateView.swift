@@ -101,11 +101,7 @@ struct MySlateView: View {
     }
 
     var body: some View {
-        GeometryReader { proxy in
-            let screenWidth = proxy.size.width
-            let screenHeight = proxy.size.height
-            
-            ZStack {
+        ZStack {
                 // [1] 배경 레이어 (종이 질감)
                 PaperBackground()
 
@@ -143,49 +139,50 @@ struct MySlateView: View {
                     .shadow(color: .black.opacity(0.05), radius: 5, y: 2)
 
                     ScrollView(showsIndicators: false) {
-                        VStack(spacing: 50) {
+                        VStack(spacing: 30) {
                             // 3. 로고 및 타이틀
                             VStack(spacing: 0) {
                                 Image("name_logo")
                                     .resizable()
                                     .scaledToFit()
-                                    .frame(width: 200)
-                                    .padding(.bottom, -60)
-                                    .padding(.top, -10)
-                                
+                                    .frame(width: 150)
+                                    .padding(.bottom, -45)
+                                    .padding(.top, -4)
+
                                 Text("Your Future-Self Awaits")
-                                    .font(.slateSans(26, weight: .bold))
+                                    .font(.slateSans(21, weight: .bold))
                                     .foregroundColor(SlateColor.ink)
-                                    .padding(.top, 5)
-                                    .padding(.bottom, 12)
-                                
+                                    .padding(.top, 4)
+                                    .padding(.bottom, 8)
+
                                 Text("Slate turns your moments into\na picture of who you're becoming.")
-                                    .font(.system(size: 15))
+                                    .font(.system(size: 13))
                                     .foregroundColor(SlateColor.inkSoft)
                                     .multilineTextAlignment(.center)
                                     .lineSpacing(2)
                             }
-                            .padding(.top, 30)
+                            .padding(.top, 14)
 
                             // 4. Before & After
-                            HStack(spacing: 40) {
+                            HStack(spacing: 28) {
                                 comparisonCircle(image: beforeImage, label: "Before", isFuture: false)
                                 futureCircle
                             }
 
                             // 5. 포커스 게이지 — 어디에 집중하는지
-                            VStack(spacing: 14) {
+                            VStack(spacing: 10) {
                                 Text("Where you're focusing")
-                                    .font(.slateSans(20, weight: .bold))
+                                    .font(.slateSans(17, weight: .bold))
                                     .foregroundColor(SlateColor.ink)
                                 Text("\(Int(progress.progressPercent))% closer to your future self")
-                                    .font(.slateSans(13))
+                                    .font(.slateSans(12))
                                     .foregroundColor(SlateColor.inkSoft)
 
                                 FocusGaugeView(
                                     segments: focusSegments,
                                     centerValue: "\(progress.totalDays)",
-                                    centerLabel: "days with Slate"
+                                    centerLabel: "days with Slate",
+                                    size: 158
                                 )
 
                                 if !focusSegments.isEmpty {
@@ -199,17 +196,16 @@ struct MySlateView: View {
                                     }
                                 }
                             }
-                            .padding(.top, 10)
 
                             // 6. 주간 활동 — 인터랙티브
-                            VStack(spacing: 12) {
+                            VStack(spacing: 10) {
                                 HStack {
                                     Text("This week")
-                                        .font(.slateSans(20, weight: .bold))
+                                        .font(.slateSans(17, weight: .bold))
                                         .foregroundColor(SlateColor.ink)
                                     Spacer()
                                 }
-                                ActivityChartView(bars: weeklyBars)
+                                ActivityChartView(bars: weeklyBars, maxHeight: 104)
                             }
                             .padding(.horizontal, 30)
 
@@ -219,14 +215,12 @@ struct MySlateView: View {
                                 statBadge(value: "\(progress.currentStreak)", label: "Streak")
                                 statBadge(value: "\(progress.longestStreak)", label: "Best")
                             }
-                            .padding(.top, 6)
 
-                            Spacer().frame(height: 50)
+                            Spacer().frame(height: 16)
                         }
                     }
                 }
             }
-        }
         .navigationBarHidden(true)
         .onAppear { futureImage = FutureSelfStore.load() }
         .alert("Couldn't generate", isPresented: $showGenError) {
@@ -238,30 +232,30 @@ struct MySlateView: View {
 
     // ── "After" = AI 미래자아 (탭하면 생성, 결과는 로컬 저장) ──
     private var futureCircle: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 10) {
             ZStack {
-                Circle().fill(SlateColor.sand).frame(width: 135, height: 135)
+                Circle().fill(SlateColor.sand).frame(width: 108, height: 108)
                 if let futureImage {
                     Image(uiImage: futureImage).resizable().scaledToFill()
-                        .frame(width: 135, height: 135).clipShape(Circle())
+                        .frame(width: 108, height: 108).clipShape(Circle())
                 } else if isGenerating {
-                    ProgressView().scaleEffect(1.2)
+                    ProgressView()
                 } else {
-                    VStack(spacing: 6) {
-                        Image(systemName: "sparkles").font(.system(size: 30)).foregroundColor(slateGreen)
+                    VStack(spacing: 5) {
+                        Image(systemName: "sparkles").font(.system(size: 24)).foregroundColor(slateGreen)
                         Text(SlateConfig.isImageGenerationAvailable ? "Tap to generate" : "Coming soon")
-                            .font(.system(size: 11)).foregroundColor(SlateColor.inkSoft)
+                            .font(.system(size: 10)).foregroundColor(SlateColor.inkSoft)
                     }
                 }
             }
-            .overlay(Circle().stroke(Color.white, lineWidth: 3))
-            .shadow(color: .black.opacity(0.08), radius: 8)
+            .overlay(Circle().stroke(SlateColor.paperSoft, lineWidth: 3))
+            .shadow(color: SlateColor.ink.opacity(0.10), radius: 7)
             .onTapGesture {
                 if !isGenerating && SlateConfig.isImageGenerationAvailable {
                     generateFutureSelf()
                 }
             }
-            Text("After").font(.system(size: 14, weight: .medium)).foregroundColor(SlateColor.inkSoft)
+            Text("After").font(.system(size: 13, weight: .medium)).foregroundColor(SlateColor.inkSoft)
         }
     }
 
@@ -304,37 +298,36 @@ struct MySlateView: View {
 
     // 원형 이미지 컴포넌트 (실제 이미지 / 미래자아 플레이스홀더 대응)
     private func comparisonCircle(image: UIImage?, label: String, isFuture: Bool) -> some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 10) {
             ZStack {
-                Circle().fill(SlateColor.sand).frame(width: 135, height: 135)
+                Circle().fill(SlateColor.sand).frame(width: 108, height: 108)
                 if let image {
                     Image(uiImage: image).resizable().scaledToFill()
-                        .frame(width: 135, height: 135).clipShape(Circle())
+                        .frame(width: 108, height: 108).clipShape(Circle())
                 } else if isFuture {
-                    // AI 미래자아 이미지 생성은 다음 단계 → 안내 플레이스홀더
-                    VStack(spacing: 6) {
-                        Image(systemName: "sparkles").font(.system(size: 34)).foregroundColor(slateGreen)
-                        Text("Coming soon").font(.system(size: 11)).foregroundColor(SlateColor.inkSoft)
+                    VStack(spacing: 5) {
+                        Image(systemName: "sparkles").font(.system(size: 26)).foregroundColor(slateGreen)
+                        Text("Coming soon").font(.system(size: 10)).foregroundColor(SlateColor.inkSoft)
                     }
                 } else {
                     // 시작점 사진을 아직 안 찍은 상태
-                    Image(systemName: "camera.fill").font(.system(size: 40)).foregroundColor(.white)
+                    Image(systemName: "camera.fill").font(.system(size: 30)).foregroundColor(SlateColor.inkFaint)
                 }
             }
-            .overlay(Circle().stroke(Color.white, lineWidth: 3))
-            .shadow(color: .black.opacity(0.08), radius: 8)
-            Text(label).font(.system(size: 14, weight: .medium)).foregroundColor(SlateColor.inkSoft)
+            .overlay(Circle().stroke(SlateColor.paperSoft, lineWidth: 3))
+            .shadow(color: SlateColor.ink.opacity(0.10), radius: 7)
+            Text(label).font(.system(size: 13, weight: .medium)).foregroundColor(SlateColor.inkSoft)
         }
     }
-    
+
     // 통계 뱃지 컴포넌트
     private func statBadge(value: String, label: String) -> some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 3) {
             Text(value)
-                .font(.system(size: 24, weight: .bold))
+                .font(.system(size: 21, weight: .bold))
                 .foregroundColor(SlateColor.ink)
             Text(label)
-                .font(.system(size: 12))
+                .font(.system(size: 11))
                 .foregroundColor(SlateColor.inkSoft)
         }
     }
