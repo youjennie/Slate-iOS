@@ -45,7 +45,7 @@ struct MainTabView: View {
             .padding(.horizontal, 28)
             .padding(.bottom, 14)
         }
-        .background(SlateColor.paper.ignoresSafeArea())
+        .slatePaperBackground()
         .fullScreenCover(isPresented: $isCameraPresented) {
             CameraView()
         }

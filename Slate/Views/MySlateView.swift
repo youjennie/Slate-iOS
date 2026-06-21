@@ -106,16 +106,8 @@ struct MySlateView: View {
             let screenHeight = proxy.size.height
             
             ZStack {
-                // [1] 배경 레이어
-                ZStack {
-                    SlateColor.paper
-                    Image("background_paper")
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: screenWidth)
-                        .clipped()
-                }
-                .ignoresSafeArea()
+                // [1] 배경 레이어 (종이 질감)
+                PaperBackground()
 
                 // [2] 콘텐츠 레이어
                 VStack(spacing: 0) {
@@ -162,9 +154,11 @@ struct MySlateView: View {
                                     .padding(.top, -10)
                                 
                                 Text("Your Future-Self Awaits")
-                                    .font(.slateSerif(26, weight: .bold))
+                                    .font(.slateHand(28, weight: .bold))
+                                    .foregroundColor(SlateColor.ink)
+                                    .doodleUnderline()
                                     .padding(.top, 5)
-                                    .padding(.bottom, 10)
+                                    .padding(.bottom, 14)
                                 
                                 Text("Slate turns your moments into\na picture of who you're becoming.")
                                     .font(.system(size: 15))
@@ -183,7 +177,7 @@ struct MySlateView: View {
                             // 5. 포커스 게이지 — 어디에 집중하는지
                             VStack(spacing: 14) {
                                 Text("Where you're focusing")
-                                    .font(.slateSerif(20, weight: .bold))
+                                    .font(.slateHand(20, weight: .bold))
                                     .foregroundColor(SlateColor.ink)
                                 Text("\(Int(progress.progressPercent))% closer to your future self")
                                     .font(.slateSans(13))
@@ -212,7 +206,7 @@ struct MySlateView: View {
                             VStack(spacing: 12) {
                                 HStack {
                                     Text("This week")
-                                        .font(.slateSerif(20, weight: .bold))
+                                        .font(.slateHand(20, weight: .bold))
                                         .foregroundColor(SlateColor.ink)
                                     Spacer()
                                 }

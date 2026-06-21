@@ -77,7 +77,11 @@ enum SlateColor {
 
 // MARK: - Typography
 extension Font {
-    /// 에디토리얼 세리프 — 제목·월·헤드라인
+    /// 손글씨 — 종이 낙서 컨셉. 브랜드/헤드라인의 "개성" 보이스 (로고 톤과 매칭)
+    static func slateHand(_ size: CGFloat, weight: Font.Weight = .bold) -> Font {
+        .custom("Bradley Hand", size: size).weight(weight)
+    }
+    /// 에디토리얼 세리프 (보조)
     static func slateSerif(_ size: CGFloat, weight: Font.Weight = .semibold) -> Font {
         .system(size: size, weight: weight, design: .serif)
     }
@@ -95,11 +99,58 @@ enum SlateRadius {
     static let pill: CGFloat = 999
 }
 
-// MARK: - 공통 배경
+// MARK: - 종이 질감 배경 (낙서 컨셉)
+/// 미스트 색 위에 구겨진 종이 결을 은은하게 깐다.
+struct PaperBackground: View {
+    var body: some View {
+        ZStack {
+            SlateColor.paper
+            Image("background_paper")
+                .resizable()
+                .scaledToFill()
+                .opacity(0.35)
+                .blendMode(.multiply)
+                .allowsHitTesting(false)
+        }
+        .ignoresSafeArea()
+    }
+}
+
 extension View {
-    /// 종이 질감 위 paper 색을 까는 표준 배경
+    /// 종이 질감 표준 배경
     func slatePaperBackground() -> some View {
-        background(SlateColor.paper.ignoresSafeArea())
+        background(PaperBackground())
+    }
+}
+
+// MARK: - 손그림 밑줄 (doodle)
+/// 살짝 흔들리는 손으로 그은 듯한 밑줄
+struct DoodleUnderline: Shape {
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        let y = rect.midY
+        let w = rect.width
+        let amp = rect.height * 0.5
+        p.move(to: CGPoint(x: 0, y: y))
+        p.addCurve(to: CGPoint(x: w * 0.5, y: y),
+                   control1: CGPoint(x: w * 0.18, y: y - amp),
+                   control2: CGPoint(x: w * 0.32, y: y + amp))
+        p.addCurve(to: CGPoint(x: w, y: y),
+                   control1: CGPoint(x: w * 0.70, y: y - amp),
+                   control2: CGPoint(x: w * 0.86, y: y + amp * 0.8))
+        return p
+    }
+}
+
+extension View {
+    /// 텍스트 아래 손그림 밑줄을 깐다
+    func doodleUnderline(_ color: Color = SlateColor.leafDeep, width: CGFloat = 3) -> some View {
+        overlay(alignment: .bottom) {
+            DoodleUnderline()
+                .stroke(color, style: StrokeStyle(lineWidth: width, lineCap: .round))
+                .frame(height: 7)
+                .offset(y: 9)
+        }
     }
 }
 

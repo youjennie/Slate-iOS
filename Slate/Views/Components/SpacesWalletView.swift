@@ -47,7 +47,7 @@ struct SpacesWalletView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text("Your Spaces")
-                    .font(.slateSerif(26, weight: .bold))
+                    .font(.slateHand(26, weight: .bold))
                     .foregroundColor(SlateColor.ink)
                 Spacer()
                 Button(action: { dismiss() }) {

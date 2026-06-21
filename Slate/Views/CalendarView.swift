@@ -118,7 +118,7 @@ struct CalendarView: View {
                 .presentationDetents([.large, .medium])
             }
         }
-        .background(SlateColor.paper)
+        .slatePaperBackground()
         .onReceive(timer) { currentTime = $0 }
         .onAppear {
             // ── Space 카테고리 동기화 ──
@@ -271,7 +271,7 @@ struct MonthSectionView: View {
         VStack(alignment: .leading, spacing: 15) {
             HStack(alignment: .center, spacing: 10) {
                 Text(month.formatted(.dateTime.month(.wide)))
-                    .font(.slateSerif(26, weight: .bold))
+                    .font(.slateHand(26, weight: .bold))
                 
                 NavigationLink(destination: MonthShareDetailView(
                                     month: month,

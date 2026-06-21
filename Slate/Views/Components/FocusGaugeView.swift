@@ -75,7 +75,7 @@ struct FocusGaugeView: View {
 
             VStack(spacing: 2) {
                 Text(centerValue)
-                    .font(.slateSerif(size * 0.19, weight: .bold))
+                    .font(.slateSans(size * 0.19, weight: .bold))
                     .foregroundColor(SlateColor.ink)
                 Text(centerLabel)
                     .font(.slateSans(11))
