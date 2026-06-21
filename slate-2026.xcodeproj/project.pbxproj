@@ -54,6 +54,17 @@
 				Views/Settings.swift,
 				Views/SocialFeedView.swift,
 				Views/SpaceManager.swift,
+				Models/FeedModels.swift,
+				Services/CloudSyncService.swift,
+				Services/FutureSelfStore.swift,
+				Services/ImageGenerationService.swift,
+				Services/NotificationService.swift,
+				Services/SlateConfig.swift,
+				Theme/BlobShape.swift,
+				Theme/SlateTheme.swift,
+				Views/Components/ActivityChartView.swift,
+				Views/Components/FocusGaugeView.swift,
+				Views/Components/SpacesWalletView.swift,
 			);
 			target = D7EF54A72F2C8FFB0017F415 /* slate-2026 */;
 		};
@@ -81,6 +92,17 @@
 				Views/Settings.swift,
 				Views/SocialFeedView.swift,
 				Views/SpaceManager.swift,
+				Models/FeedModels.swift,
+				Services/CloudSyncService.swift,
+				Services/FutureSelfStore.swift,
+				Services/ImageGenerationService.swift,
+				Services/NotificationService.swift,
+				Services/SlateConfig.swift,
+				Theme/BlobShape.swift,
+				Theme/SlateTheme.swift,
+				Views/Components/ActivityChartView.swift,
+				Views/Components/FocusGaugeView.swift,
+				Views/Components/SpacesWalletView.swift,
 			);
 			target = D7EF54B42F2C8FFD0017F415 /* slate-2026Tests */;
 		};
