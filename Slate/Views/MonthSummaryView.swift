@@ -30,7 +30,7 @@ struct MonthSummaryView: View {
                     .padding(.leading, -27)
                 
                 Text(month.formatted(.dateTime.month(.wide)))
-                    .font(.slateHand(54, weight: .black))
+                    .font(.slateSans(54, weight: .black))
                     .foregroundColor(SlateColor.ink)
             }
             .frame(maxWidth: .infinity, alignment: .center)

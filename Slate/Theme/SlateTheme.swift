@@ -14,42 +14,41 @@ extension Color {
     }
 }
 
-// MARK: - Slate "Soft Mist" palette (v4)
-/// 쿨한 라이트 미스트 바탕 + 소프트 민트·버터·아쿠아 파스텔.
-/// 토큰 이름은 의미 기준으로 유지(leaf=초록, honey=노랑, sky=청록 등),
-/// 값만 Soft Mist 톤으로. 모든 화면은 하드코딩 색 대신 이 토큰을 쓴다.
+// MARK: - Slate "Pine & Olive" palette
+/// 딥 파인(#214944) + 올리브(#C1C177) + 샌드(#D8D4B8) 기반의 차분한 어스 톤.
+/// 토큰 이름은 의미 기준으로 유지(leaf=주액센트, sky=틸 등), 값만 이 팔레트로.
 enum SlateColor {
-    // 베이스 (미스트/카드)
-    static let paper      = Color(hex: "#ECEFE7")   // mist 바탕
-    static let paperSoft  = Color(hex: "#F8F9F3")   // cloud 카드(거의 흰색)
-    static let paperDeep  = Color(hex: "#E2E6DC")
-    static let sand       = Color(hex: "#DDE2D6")   // 중립 라이트(원형/구분선)
-    static let sandDeep   = Color(hex: "#C9CFBE")
+    // 베이스 (샌드/카드)
+    static let paper      = Color(hex: "#E5E2CE")   // 따뜻한 샌드 바탕
+    static let paperSoft  = Color(hex: "#F1EFE2")   // 카드(밝은 샌드)
+    static let paperDeep  = Color(hex: "#D8D4B8")   // 샌드 딥(지정색)
+    static let sand       = Color(hex: "#D8D4B8")
+    static let sandDeep   = Color(hex: "#C5C0A0")
 
-    // 잉크 (텍스트)
-    static let ink        = Color(hex: "#33352D")
-    static let inkSoft    = Color(hex: "#797C6C")
-    static let inkFaint   = Color(hex: "#A9AB9C")
+    // 잉크 (텍스트) — 딥 파인
+    static let ink        = Color(hex: "#214944")
+    static let inkSoft    = Color(hex: "#4E6962")
+    static let inkFaint   = Color(hex: "#8C988F")
 
-    // 주 액센트 — 민트(연두)
-    static let leaf       = Color(hex: "#C2DBA7")
-    static let leafDeep   = Color(hex: "#88AC60")
-    static let leafSoft   = Color(hex: "#DDE9CB")
+    // 주 액센트 — 올리브
+    static let leaf       = Color(hex: "#C1C177")
+    static let leafDeep   = Color(hex: "#7C8A3C")
+    static let leafSoft   = Color(hex: "#D7D6A7")
 
-    // 보조 액센트 — 버터(노랑)
-    static let honey      = Color(hex: "#EFE7A6")
-    static let honeyDeep  = Color(hex: "#BBAB52")
+    // 보조 액센트 — 골드
+    static let honey      = Color(hex: "#CDB86A")
+    static let honeyDeep  = Color(hex: "#9A863C")
 
-    // 스티커 파스텔
-    static let pink       = Color(hex: "#EBC3B4")   // blush
-    static let pinkDeep   = Color(hex: "#BE7C66")
-    static let sky        = Color(hex: "#A8D7CE")   // aqua
-    static let skyDeep    = Color(hex: "#579E90")
-    static let lilac      = Color(hex: "#CFC6E2")
-    static let lilacDeep  = Color(hex: "#8A79B5")
+    // 보조 어스 톤 (Space/포커스 구분용)
+    static let pink       = Color(hex: "#C79279")   // 클레이
+    static let pinkDeep   = Color(hex: "#9A5E42")
+    static let sky        = Color(hex: "#5E9A8F")   // 틸
+    static let skyDeep    = Color(hex: "#214944")
+    static let lilac      = Color(hex: "#A9B589")   // 세이지
+    static let lilacDeep  = Color(hex: "#6C7B4C")
 
     // 다크 pill 내비
-    static let navBar     = Color(hex: "#2E332B")
+    static let navBar     = Color(hex: "#214944")
 
     /// Space/카테고리 → 대표 색 (월렛 카드·포커스 링·스티커 공통)
     static let spacePalette: [Color] = [leaf, honey, pink, sky, lilac]

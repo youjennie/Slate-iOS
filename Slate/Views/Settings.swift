@@ -37,15 +37,7 @@ struct MySlateSettingsView: View {
 
     var body: some View {
         ZStack {
-            Group {
-                SlateColor.paper
-                Image("background_paper")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: 393, height: 852)
-                    .opacity(0.4)
-            }
-            .ignoresSafeArea()
+            PaperBackground()
 
             VStack(spacing: 0) {
                 HStack {
@@ -57,12 +49,12 @@ struct MySlateSettingsView: View {
                     }
                     Spacer()
                     Text("Settings").font(.system(size: 18, weight: .bold))
+                        .foregroundColor(SlateColor.ink)
                     Spacer()
                     Image(systemName: "chevron.left").opacity(0).padding(10)
                 }
-                .padding(.top, 30)
-                .frame(height: 90)
-                .background(Color.white.opacity(0.9))
+                .padding(.vertical, 8)
+                .background(SlateColor.paperSoft)
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: 40) {
@@ -257,6 +249,32 @@ struct MySlateSettingsView: View {
                     }.padding(18)
                 }
             }
+
+            #if DEBUG
+            // ── 로컬 테스트용 (DEBUG 빌드에서만 보임) ──
+            settingGroup(title: "DEBUG · LOCAL TEST") {
+                Button(action: {
+                    SampleData.seed(into: modelContext)
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                }) {
+                    HStack {
+                        Text("Load sample data").font(.system(size: 16)).foregroundColor(SlateColor.leafDeep)
+                        Spacer()
+                        Image(systemName: "wand.and.stars").font(.system(size: 14)).foregroundColor(SlateColor.inkSoft)
+                    }.padding(18)
+                }
+                Button(action: {
+                    SampleData.clear(into: modelContext)
+                    UINotificationFeedbackGenerator().notificationOccurred(.warning)
+                }) {
+                    HStack {
+                        Text("Clear all data").font(.system(size: 16)).foregroundColor(.red)
+                        Spacer()
+                        Image(systemName: "trash").font(.system(size: 14)).foregroundColor(SlateColor.inkSoft)
+                    }.padding(18)
+                }
+            }
+            #endif
         }.padding(.horizontal, 25)
     }
 

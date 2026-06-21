@@ -45,6 +45,21 @@ struct SlateApp: App {
             .animation(.spring(response: 0.5, dampingFraction: 0.8), value: spaceManager.isLoggedIn)
             .modelContainer(sharedModelContainer)
             .environmentObject(spaceManager)
+            .task { handleLaunchArguments() }
+        }
+    }
+
+    /// 커맨드라인 인자 처리 — 로컬 테스트용
+    /// Scheme ▸ Run ▸ Arguments에 `-seedSampleData` 또는 `-clearData` 추가
+    @MainActor
+    private func handleLaunchArguments() {
+        let args = ProcessInfo.processInfo.arguments
+        if args.contains("-seedSampleData") {
+            SampleData.seed(into: sharedModelContainer.mainContext)
+            spaceManager.isLoggedIn = true
+            spaceManager.userName = UserDefaults.standard.string(forKey: "slate_userName") ?? "YouJung"
+        } else if args.contains("-clearData") {
+            SampleData.clear(into: sharedModelContainer.mainContext)
         }
     }
     

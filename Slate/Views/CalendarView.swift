@@ -32,16 +32,23 @@ struct CalendarView: View {
     
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
-    // ── 동적 월 범위: joinDate 기반 ──
+    // ── 동적 월 범위: 오늘 ±6개월 기본 + 기록이 있는 달은 범위 밖이라도 무조건 포함 ──
     private var monthInterval: [Date] {
         let calendar = Calendar.current
-        // UserDefaults에 joinDate가 없으면 현재 달 - 3개월부터
-        let joinDate = UserDefaults.standard.object(forKey: "slate_joinDate") as? Date ?? calendar.date(byAdding: .month, value: -3, to: Date())!
-        let startDate = calendar.date(from: calendar.dateComponents([.year, .month], from: joinDate))!
-        let endDate = calendar.date(byAdding: .month, value: 3, to: Date())!
+        func monthStart(_ date: Date) -> Date {
+            calendar.date(from: calendar.dateComponents([.year, .month], from: date)) ?? date
+        }
+        // 기본 윈도우: 입력이 없어도 앞뒤 6개월
+        var start = monthStart(calendar.date(byAdding: .month, value: -6, to: Date())!)
+        var end   = monthStart(calendar.date(byAdding: .month, value: 6, to: Date())!)
+        // 기록이 있는 달까지 확장 (6개월을 넘어가도)
+        let recordMonths = activeRecords.map { monthStart($0.date) }
+        if let earliest = recordMonths.min(), earliest < start { start = earliest }
+        if let latest = recordMonths.max(), latest > end { end = latest }
+
         var months: [Date] = []
-        var current = startDate
-        while current <= endDate {
+        var current = start
+        while current <= end {
             months.append(current)
             current = calendar.date(byAdding: .month, value: 1, to: current)!
         }
@@ -271,7 +278,7 @@ struct MonthSectionView: View {
         VStack(alignment: .leading, spacing: 15) {
             HStack(alignment: .center, spacing: 10) {
                 Text(month.formatted(.dateTime.month(.wide)))
-                    .font(.slateHand(26, weight: .bold))
+                    .font(.slateSans(26, weight: .bold))
                 
                 NavigationLink(destination: MonthShareDetailView(
                                     month: month,

@@ -17,33 +17,30 @@ struct MainTabView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            // 1. 콘텐츠 영역
-            Group {
-                if selectedTab == 0 {
-                    NavigationStack { CalendarView() }
-                } else {
-                    NavigationStack { MySlateView(onBack: { selectedTab = 0 }) }
-                }
+        Group {
+            if selectedTab == 0 {
+                NavigationStack { CalendarView() }
+            } else {
+                NavigationStack { MySlateView(onBack: { selectedTab = 0 }) }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(.bottom, 90)
-
-            // 2. 다크 pill 플로팅 내비
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // 다크 pill 내비를 safeAreaInset으로 → 어떤 화면도 가려지거나 짤리지 않음
+        .safeAreaInset(edge: .bottom) {
             HStack(spacing: 0) {
                 tabButton(icon: "calendar", index: 0)
                 cameraButtonView
                 tabButton(icon: "person.fill", index: 1)
             }
             .padding(.horizontal, 30)
-            .frame(height: 62)
+            .frame(height: 60)
             .background(
                 Capsule()
                     .fill(SlateColor.navBar)
                     .shadow(color: SlateColor.ink.opacity(0.25), radius: 16, x: 0, y: 8)
             )
             .padding(.horizontal, 28)
-            .padding(.bottom, 14)
+            .padding(.top, 18)   // 가운데 카메라 버튼이 위로 떠도 공간 확보
         }
         .slatePaperBackground()
         .fullScreenCover(isPresented: $isCameraPresented) {
@@ -57,14 +54,16 @@ struct MainTabView: View {
             ZStack {
                 Circle()
                     .fill(SlateColor.leaf)
-                    .frame(width: 56, height: 56)
+                    .frame(width: 72, height: 72)
+                    .overlay(Circle().stroke(SlateColor.paper, lineWidth: 5))
+                    .shadow(color: SlateColor.ink.opacity(0.30), radius: 10, x: 0, y: 5)
                 Image(systemName: "camera.fill")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundColor(SlateColor.leafDeep)
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundColor(SlateColor.ink)
             }
         }
         .frame(maxWidth: .infinity)
-        .offset(y: -12)
+        .offset(y: -22)
     }
 }
 

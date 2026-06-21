@@ -23,19 +23,18 @@ struct DailyPhotoView: View {
     @State private var currentTime = Date()
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
-    let columns = [GridItem(.flexible(), spacing: 2), GridItem(.flexible(), spacing: 2), GridItem(.flexible(), spacing: 2)]
+    let columns = [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)]
 
-    private var allDatesInCalendar: [Date] {
+    /// 피드: 선택 카테고리에 기록이 있는 날짜만 (최신순) + 진입한 날짜는 항상 포함
+    private var feedDays: [Date] {
         let calendar = Calendar.current
-        let startDate = calendar.date(byAdding: .month, value: -6, to: Date())!
-        let endDate = calendar.date(byAdding: .month, value: 6, to: Date())!
-        var dates: [Date] = []
-        var current = startDate
-        while current <= endDate {
-            dates.append(current)
-            current = calendar.date(byAdding: .day, value: 1, to: current)!
-        }
-        return dates
+        var days = Set(
+            allRecords
+                .filter { $0.spaceTag == selectedCategory }
+                .map { calendar.startOfDay(for: $0.date) }
+        )
+        days.insert(calendar.startOfDay(for: date)) // 캘린더에서 탭한 날은 비어도 표시
+        return days.sorted(by: >)
     }
 
     var body: some View {
@@ -44,23 +43,24 @@ struct DailyPhotoView: View {
             
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 30) {
-                        ForEach(allDatesInCalendar, id: \.self) { day in
+                    LazyVStack(alignment: .leading, spacing: 28) {
+                        ForEach(feedDays, id: \.self) { day in
                             let recordsForDay = allRecords.filter {
                                 Calendar.current.isDate($0.date, inSameDayAs: day) && $0.spaceTag == selectedCategory
                             }
-                            
                             daySection(day: day, records: recordsForDay)
                                 .id(Calendar.current.startOfDay(for: day))
                         }
                     }
-                    .padding(.bottom, 100)
+                    .padding(.top, 16)
+                    .padding(.bottom, 40)
                 }
                 .onAppear {
                     scrollToTargetDate(proxy: proxy)
                 }
             }
         }
+        .slatePaperBackground()
         .navigationBarBackButtonHidden(true)
         .confirmationDialog("Add your moment", isPresented: $showActionSheet, titleVisibility: .visible) {
             Button("Take a Photo") { showCustomCamera = true }
@@ -98,36 +98,58 @@ struct DailyPhotoView: View {
                 Image(systemName: "chevron.left").font(.system(size: 18, weight: .bold)).foregroundColor(SlateColor.ink)
             }
             Spacer()
-            VStack(spacing: 2) {
-                Text("\(selectedCategory) Slate Feed").font(.system(size: 16, weight: .bold))
-                Text(currentTime.formatted(date: .complete, time: .omitted)).font(.system(size: 11)).foregroundColor(SlateColor.inkSoft)
+            HStack(spacing: 7) {
+                Text(SlateEmoji.forSpace(named: selectedCategory)).font(.system(size: 16))
+                Text("\(selectedCategory) Feed").font(.slateSans(17, weight: .bold)).foregroundColor(SlateColor.ink)
             }
             Spacer()
             NavigationLink(destination: RecentlyDeletedView()) {
-                Image(systemName: "trash").font(.system(size: 18)).padding(.trailing, 16)
+                Image(systemName: "trash").font(.system(size: 17)).foregroundColor(SlateColor.inkSoft)
             }
         }
-        .padding(.horizontal, 20).padding(.vertical, 12).background(SlateColor.paperSoft)
+        .padding(.horizontal, 20).padding(.vertical, 14).background(SlateColor.paperSoft)
         .onReceive(timer) { currentTime = $0 }
     }
 
     private func daySection(day: Date, records: [PhotoRecord]) -> some View {
-        let cellSize = (UIScreen.main.bounds.width - 44) / 3
-        
-        return VStack(alignment: .leading, spacing: 12) {
-            Text(day.formatted(.dateTime.month(.wide).day().weekday()))
-                .font(.system(size: 16, weight: .bold))
-                .foregroundColor(Calendar.current.isDateInToday(day) ? SlateColor.leafDeep : .primary)
-                .padding(.horizontal, 20)
-            
-            LazyVGrid(columns: columns, spacing: 2) {
+        let cellSize = (UIScreen.main.bounds.width - 40 - 16) / 3
+        let isToday = Calendar.current.isDateInToday(day)
+
+        return VStack(alignment: .leading, spacing: 14) {
+            // 날짜 헤더
+            HStack(spacing: 8) {
+                Text(day.formatted(.dateTime.day()))
+                    .font(.slateSans(24, weight: .bold))
+                    .foregroundColor(isToday ? SlateColor.leafDeep : SlateColor.ink)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(day.formatted(.dateTime.weekday(.wide)))
+                        .font(.slateSans(13, weight: .semibold))
+                        .foregroundColor(SlateColor.inkSoft)
+                    Text(day.formatted(.dateTime.month(.wide)))
+                        .font(.slateSans(11))
+                        .foregroundColor(SlateColor.inkFaint)
+                }
+                if isToday {
+                    Text("TODAY")
+                        .font(.slateSans(9, weight: .bold))
+                        .foregroundColor(SlateColor.leafDeep)
+                        .padding(.horizontal, 8).padding(.vertical, 3)
+                        .background(Capsule().fill(SlateColor.leafSoft))
+                }
+            }
+            .padding(.horizontal, 20)
+
+            LazyVGrid(columns: columns, spacing: 8) {
                 ForEach(records) { record in
                     if let data = record.imageData, let uiImage = UIImage(data: data) {
                         ZStack(alignment: .topTrailing) {
-                            Image(uiImage: uiImage).resizable().scaledToFill().frame(width: cellSize, height: cellSize).clipped()
-                            // ── Soft Delete: isDeleted = true로 변경 ──
+                            Image(uiImage: uiImage).resizable().scaledToFill()
+                                .frame(width: cellSize, height: cellSize)
+                                .clipShape(RoundedRectangle(cornerRadius: SlateRadius.md))
                             Button(action: { softDeleteRecord(record) }) {
-                                Image(systemName: "xmark").font(.system(size: 10, weight: .bold)).foregroundColor(.white).padding(6).background(Color.white.opacity(0.3)).clipShape(Circle())
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 10, weight: .bold)).foregroundColor(.white)
+                                    .padding(6).background(SlateColor.ink.opacity(0.45)).clipShape(Circle())
                             }.padding(6)
                         }
                     }
@@ -136,12 +158,18 @@ struct DailyPhotoView: View {
                     targetDate = day
                     showActionSheet = true
                 }) {
-                    Rectangle().fill(SlateColor.inkFaint.opacity(0.1)).frame(width: cellSize, height: cellSize)
-                        .overlay(Image(systemName: "plus").foregroundColor(SlateColor.inkSoft))
+                    RoundedRectangle(cornerRadius: SlateRadius.md)
+                        .fill(SlateColor.paperSoft)
+                        .frame(width: cellSize, height: cellSize)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: SlateRadius.md)
+                                .strokeBorder(SlateColor.sandDeep, style: StrokeStyle(lineWidth: 1.5, dash: [5]))
+                        )
+                        .overlay(Image(systemName: "plus").font(.system(size: 22)).foregroundColor(SlateColor.inkFaint))
                 }
             }
             .padding(.horizontal, 20)
-            
+
             MemoInputField(day: day, records: records, modelContext: modelContext, spaceTag: selectedCategory)
         }
     }
@@ -174,23 +202,21 @@ struct MemoInputField: View {
     @State private var text: String = ""
 
     var body: some View {
-        VStack(spacing: 0) {
-            TextField("Write a short note...", text: $text, onCommit: {
+        HStack(spacing: 8) {
+            Image(systemName: "pencil.line").font(.system(size: 13)).foregroundColor(SlateColor.inkFaint)
+            TextField("Write a short note…", text: $text, onCommit: {
                 if let first = records.first {
                     first.memo = text
                 } else {
                     modelContext.insert(PhotoRecord(date: day, memo: text, spaceTag: spaceTag))
                 }
             })
-            .font(.system(size: 14)).padding(12).background(SlateColor.inkFaint.opacity(0.05)).cornerRadius(10).padding(.horizontal, 20)
-            
-            Rectangle()
-                .stroke(style: StrokeStyle(lineWidth: 1, dash: [3]))
-                .foregroundColor(SlateColor.inkFaint.opacity(0.15))
-                .frame(height: 1)
-                .padding(.horizontal, 30)
-                .padding(.top, 25)
+            .font(.slateSans(14))
+            .foregroundColor(SlateColor.ink)
         }
+        .padding(.horizontal, 14).padding(.vertical, 12)
+        .background(RoundedRectangle(cornerRadius: SlateRadius.md).fill(SlateColor.paperSoft))
+        .padding(.horizontal, 20)
         .onAppear {
             if let existingMemo = records.first(where: { !$0.memo.isEmpty })?.memo {
                 text = existingMemo

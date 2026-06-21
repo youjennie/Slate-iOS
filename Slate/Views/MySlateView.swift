@@ -154,11 +154,10 @@ struct MySlateView: View {
                                     .padding(.top, -10)
                                 
                                 Text("Your Future-Self Awaits")
-                                    .font(.slateHand(28, weight: .bold))
+                                    .font(.slateSans(26, weight: .bold))
                                     .foregroundColor(SlateColor.ink)
-                                    .doodleUnderline()
                                     .padding(.top, 5)
-                                    .padding(.bottom, 14)
+                                    .padding(.bottom, 12)
                                 
                                 Text("Slate turns your moments into\na picture of who you're becoming.")
                                     .font(.system(size: 15))
@@ -177,7 +176,7 @@ struct MySlateView: View {
                             // 5. 포커스 게이지 — 어디에 집중하는지
                             VStack(spacing: 14) {
                                 Text("Where you're focusing")
-                                    .font(.slateHand(20, weight: .bold))
+                                    .font(.slateSans(20, weight: .bold))
                                     .foregroundColor(SlateColor.ink)
                                 Text("\(Int(progress.progressPercent))% closer to your future self")
                                     .font(.slateSans(13))
@@ -206,7 +205,7 @@ struct MySlateView: View {
                             VStack(spacing: 12) {
                                 HStack {
                                     Text("This week")
-                                        .font(.slateHand(20, weight: .bold))
+                                        .font(.slateSans(20, weight: .bold))
                                         .foregroundColor(SlateColor.ink)
                                     Spacer()
                                 }

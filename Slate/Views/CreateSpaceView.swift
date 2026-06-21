@@ -44,7 +44,7 @@ struct CreateSpaceView: View {
                 VStack(alignment: .leading, spacing: 30) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Create Your Space")
-                            .font(.slateHand(32, weight: .bold))
+                            .font(.slateSans(32, weight: .bold))
                         Text("What is this space about?")
                             .font(.system(size: 18))
                             .foregroundColor(SlateColor.inkSoft)
