@@ -18,11 +18,16 @@ struct MySlateSettingsView: View {
     
     @State private var showImagePicker = false
     @State private var profileImage: UIImage?
+    @State private var pickedImages: [UIImage] = []
     @State private var notificationsEnabled = true
     @State private var photoPrivacyEnabled = true
     
     // ── 계정 삭제 확인 다이얼로그 ──
     @State private var showDeleteConfirmation = false
+    // ── 알림 권한 거부 안내 다이얼로그 ──
+    @State private var showNotificationDeniedAlert = false
+    // ── 미래자아 재생성 안내 다이얼로그 ──
+    @State private var showRegenerateConfirm = false
 
     private var initials: String {
         let name = spaceManager.userName.isEmpty ? "User" : spaceManager.userName
@@ -75,6 +80,51 @@ struct MySlateSettingsView: View {
         .onAppear {
             editedName = spaceManager.userName
             editedBio = currentBio
+            profileImage = Self.loadProfileImage()
+            notificationsEnabled = UserDefaults.standard.bool(forKey: "slate_notificationsEnabled")
+        }
+        // ── 프로필 사진 선택 (아바타 1장) ──
+        .sheet(isPresented: $showImagePicker) {
+            ImagePicker(selectedImages: $pickedImages, detectedDate: Date(), selectionLimit: 1)
+        }
+        .onChange(of: pickedImages) { _, newImages in
+            if let img = newImages.first {
+                profileImage = img
+                Self.saveProfileImage(img)
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+            }
+        }
+        // ── 알림 토글 → 권한 요청 + 매일 리마인더 예약/취소 ──
+        .onChange(of: notificationsEnabled) { _, enabled in
+            UserDefaults.standard.set(enabled, forKey: "slate_notificationsEnabled")
+            if enabled {
+                NotificationService.shared.requestAuthorization { granted in
+                    if granted {
+                        NotificationService.shared.scheduleDailyReminder()
+                    } else {
+                        // 권한 거부 시 토글 원복 + 설정 이동 안내
+                        notificationsEnabled = false
+                        showNotificationDeniedAlert = true
+                    }
+                }
+            } else {
+                NotificationService.shared.cancelDailyReminder()
+            }
+        }
+        .alert("Notifications Off", isPresented: $showNotificationDeniedAlert) {
+            Button("Open Settings") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("Enable notifications in Settings to get your daily Slate reminder.")
+        }
+        .alert("Future Image Reset", isPresented: $showRegenerateConfirm) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Open My Slate and tap the 'After' circle to generate a fresh future-self image.")
         }
         // ── 계정 삭제 확인 Alert ──
         .alert("Delete Account", isPresented: $showDeleteConfirmation) {
@@ -153,8 +203,26 @@ struct MySlateSettingsView: View {
             }
             
             settingGroup(title: "GROWTH DATA") {
-                settingRow(title: "AI Images")
-                settingRow(title: "Regenerate Future Image")
+                // AI 미래자아 사용 가능 여부 (Gemini 키 설정 상태)
+                HStack {
+                    Text("AI Future Self").font(.system(size: 16))
+                    Spacer()
+                    Text(SlateConfig.isImageGenerationAvailable ? "On" : "Set API key")
+                        .font(.system(size: 14)).foregroundColor(.gray)
+                }.padding(18)
+
+                // 캐시를 비워 다음 My Slate 방문 시 재생성되도록
+                Button(action: {
+                    FutureSelfStore.clear()
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
+                    showRegenerateConfirm = true
+                }) {
+                    HStack {
+                        Text("Regenerate Future Image").font(.system(size: 16)).foregroundColor(.black)
+                        Spacer()
+                        Image(systemName: "arrow.clockwise").font(.system(size: 14)).foregroundColor(.gray)
+                    }.padding(18)
+                }
             }
 
             settingGroup(title: "PRIVACY") {
@@ -212,11 +280,31 @@ struct MySlateSettingsView: View {
         
         // 2. UserDefaults 전체 초기화
         UserDefaults.standard.removeObject(forKey: "slate_joinDate")
-        
+
+        // 2-1. 프로필 이미지 / 미래자아 이미지 파일 삭제
+        try? FileManager.default.removeItem(at: Self.profileImageURL)
+        FutureSelfStore.clear()
+        profileImage = nil
+
         // 3. SpaceManager 초기화 + 로그아웃
         spaceManager.deleteAccount()
-        
+
         UINotificationFeedbackGenerator().notificationOccurred(.success)
+    }
+
+    // ── 프로필 이미지 영속화 (Application Support에 jpg로 저장) ──
+    private static var profileImageURL: URL {
+        URL.applicationSupportDirectory.appending(path: "slate_profile.jpg")
+    }
+
+    private static func saveProfileImage(_ image: UIImage) {
+        guard let data = image.jpegData(compressionQuality: 0.8) else { return }
+        try? data.write(to: profileImageURL)
+    }
+
+    private static func loadProfileImage() -> UIImage? {
+        guard let data = try? Data(contentsOf: profileImageURL) else { return nil }
+        return UIImage(data: data)
     }
 
     // --- 공통 부품 함수들 ---
@@ -231,14 +319,6 @@ struct MySlateSettingsView: View {
             Text(title).font(.system(size: 12, weight: .bold)).foregroundColor(.gray).padding(.leading, 5)
             VStack(spacing: 0) { content() }.background(RoundedRectangle(cornerRadius: 18).fill(Color.white.opacity(0.7)))
         }
-    }
-
-    private func settingRow(title: String, isDestructive: Bool = false) -> some View {
-        HStack {
-            Text(title).font(.system(size: 16)).foregroundColor(isDestructive ? .red : .black)
-            Spacer()
-            Image(systemName: "chevron.right").font(.system(size: 14)).foregroundColor(.gray)
-        }.padding(18)
     }
 
     private func settingToggleRow(title: String, subtitle: String? = nil, isOn: Binding<Bool>) -> some View {
