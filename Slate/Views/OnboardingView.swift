@@ -11,70 +11,58 @@ struct OnboardingView: View {
         _userName = State(initialValue: prefillName)
     }
 
-    let slateDark = Color(hex: "#414141")
-    let slateWhite = SlateColor.leafDeep
-
     var body: some View {
-        GeometryReader { geometry in
-            let screenWidth = geometry.size.width
-            
-            ZStack {
-                Image("background_paper")
-                    .resizable()
-                    .scaledToFill()
-                    .frame(width: screenWidth)
-                    .ignoresSafeArea()
+        VStack(spacing: 40) {
+            Spacer()
 
-                VStack(spacing: 40) {
-                    Spacer()
-                    
-                    Image("name_logo")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: screenWidth * 0.7)
-                    
-                    VStack(spacing: 20) {
-                        Text("What should we call you?")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(SlateColor.ink.opacity(0.5))
-                        
-                        HStack {
-                            TextField("Your Name", text: $userName)
-                                .padding(.leading, 24)
-                                .font(.system(size: 18))
-                            
-                            Button(action: {
-                                loginAction()
-                            }) {
-                                Image(systemName: "chevron.right.circle.fill")
-                                    .resizable()
-                                    .frame(width: 44, height: 44)
-                                    .foregroundColor(userName.isEmpty ? SlateColor.inkFaint.opacity(0.3) : slateDark)
-                                    .padding(8)
-                            }
-                            .disabled(userName.isEmpty)
-                        }
-                        .frame(width: min(screenWidth * 0.85, 340), height: 64)
-                        .background(
-                            RoundedRectangle(cornerRadius: 32)
-                                .fill(Color.white.opacity(0.6))
-                                .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 32)
-                                .stroke(SlateColor.inkFaint.opacity(0.2), lineWidth: 1)
-                        )
-                        
-                        Text("You can change this anytime.")
-                            .font(.system(size: 13))
-                            .foregroundColor(SlateColor.inkSoft)
+            Image("name_logo")
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: 250)
+
+            VStack(spacing: 20) {
+                Text("What should we call you?")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(SlateColor.inkSoft)
+
+                HStack {
+                    TextField("Your Name", text: $userName)
+                        .padding(.leading, 24)
+                        .font(.system(size: 18))
+                        .foregroundColor(SlateColor.ink)
+
+                    Button(action: { loginAction() }) {
+                        Image(systemName: "chevron.right.circle.fill")
+                            .resizable()
+                            .frame(width: 44, height: 44)
+                            .foregroundColor(userName.isEmpty ? SlateColor.inkFaint.opacity(0.4) : SlateColor.leafDeep)
+                            .padding(8)
                     }
-                    .padding(.bottom, 60)
-                    
-                    Spacer()
+                    .disabled(userName.isEmpty)
                 }
+                .frame(height: 64)
+                .background(
+                    RoundedRectangle(cornerRadius: 32)
+                        .fill(SlateColor.paperSoft)
+                        .shadow(color: SlateColor.ink.opacity(0.06), radius: 10, x: 0, y: 5)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 32)
+                        .stroke(SlateColor.inkFaint.opacity(0.2), lineWidth: 1)
+                )
+                .frame(maxWidth: 340)
+                .padding(.horizontal, 32)
+
+                Text("You can change this anytime.")
+                    .font(.system(size: 13))
+                    .foregroundColor(SlateColor.inkSoft)
             }
+            .padding(.bottom, 60)
+
+            Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .slatePaperBackground()
     }
     
     private func loginAction() {

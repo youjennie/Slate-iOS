@@ -9,6 +9,12 @@ struct MySlateSettingsView: View {
     @ObservedObject var spaceManager = SpaceManager.shared
     @ObservedObject private var theme = ThemeManager.shared
     @Query(sort: \Space.createdAt) private var spaces: [Space]
+    @Query private var allRecords: [PhotoRecord]
+
+    /// Space별 기록 수 (삭제 제외)
+    private func momentCount(_ space: Space) -> Int {
+        allRecords.filter { !$0.isDeleted && $0.spaceTag == space.name }.count
+    }
 
     let slateWhite = SlateColor.leafDeep
     let slateGreen = SlateColor.leaf
@@ -182,34 +188,88 @@ struct MySlateSettingsView: View {
     }
 
     private var keywordSection: some View {
-        VStack(alignment: .leading, spacing: 15) {
-            Text("Your Spaces")
-                .font(.slateSans(15, weight: .bold))
-                .foregroundColor(SlateColor.ink)
-                .padding(.horizontal, 25)
+        VStack(alignment: .leading, spacing: 16) {
+            // 헤더: 타이틀 + 개수 pill
+            HStack(spacing: 8) {
+                Text("Your Spaces")
+                    .font(.slateSans(16, weight: .bold))
+                    .foregroundColor(SlateColor.ink)
+                if !spaces.isEmpty {
+                    Text("\(spaces.count)")
+                        .font(.slateSans(12, weight: .bold))
+                        .foregroundColor(SlateColor.leafDeep)
+                        .padding(.horizontal, 9).padding(.vertical, 3)
+                        .background(Capsule().fill(SlateColor.leafSoft))
+                }
+                Spacer()
+            }
+            .padding(.horizontal, 25)
+
             if spaces.isEmpty {
-                Text("Create a space to grow your collection.")
-                    .font(.slateSans(13))
-                    .foregroundColor(SlateColor.inkSoft)
-                    .padding(.horizontal, 25)
+                HStack(spacing: 12) {
+                    Image(systemName: "leaf")
+                        .font(.system(size: 18))
+                        .foregroundColor(SlateColor.leafDeep)
+                        .frame(width: 44, height: 44)
+                        .background(Circle().fill(SlateColor.leafSoft))
+                    Text("Create a space to start\ngrowing your collection.")
+                        .font(.slateSans(13))
+                        .foregroundColor(SlateColor.inkSoft)
+                    Spacer()
+                }
+                .padding(16)
+                .background(RoundedRectangle(cornerRadius: 20).fill(SlateColor.paperSoft))
+                .padding(.horizontal, 25)
             } else {
+                // 스티커 셸프: 블롭 + 이름 + moments 카운트
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 14) {
+                    HStack(alignment: .top, spacing: 14) {
                         ForEach(Array(spaces.enumerated()), id: \.element.id) { index, space in
-                            StickerBadge(
-                                emoji: SlateEmoji.forSpace(named: space.name),
-                                label: space.name,
-                                color: SlateColor.forSpace(index),
-                                variant: index,
-                                rotation: index % 2 == 0 ? -7 : 6
-                            )
+                            spaceCard(space, index: index)
                         }
                     }
-                    .padding(.horizontal, 22)
-                    .padding(.vertical, 4)
+                    .padding(.horizontal, 25)
+                    .padding(.vertical, 6)
                 }
             }
         }
+    }
+
+    /// Your Spaces 카드 — 블롭 스티커 + 이름 + moments 수
+    private func spaceCard(_ space: Space, index: Int) -> some View {
+        let color = SlateColor.forSpace(index)
+        let count = momentCount(space)
+        return VStack(spacing: 10) {
+            ZStack(alignment: .topTrailing) {
+                StickerBadge(
+                    emoji: SlateEmoji.forSpace(named: space.name),
+                    label: "",
+                    color: color,
+                    variant: index,
+                    rotation: index % 2 == 0 ? -7 : 6,
+                    size: 78
+                )
+                // 기록 수 버블
+                Text("\(count)")
+                    .font(.slateSans(11, weight: .bold))
+                    .foregroundColor(SlateColor.paperSoft)
+                    .frame(minWidth: 22, minHeight: 22)
+                    .padding(.horizontal, 3)
+                    .background(Circle().fill(SlateColor.ink))
+                    .overlay(Circle().stroke(SlateColor.paperSoft, lineWidth: 2))
+                    .offset(x: 6, y: -2)
+            }
+            VStack(spacing: 2) {
+                Text(space.name)
+                    .font(.slateSans(13, weight: .semibold))
+                    .foregroundColor(SlateColor.ink)
+                    .lineLimit(1)
+                Text(count == 1 ? "1 moment" : "\(count) moments")
+                    .font(.slateSans(10))
+                    .foregroundColor(SlateColor.inkFaint)
+            }
+        }
+        .frame(width: 96)
     }
 
     // ── 컬러 테마 선택 ──

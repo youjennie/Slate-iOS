@@ -100,7 +100,7 @@ struct CreateSpaceView: View {
                     .frame(maxWidth: .infinity)
                     .frame(height: 45)
                     .background(RoundedRectangle(cornerRadius: 25).stroke(selectedTag == customTagName ? SlateColor.leafDeep : SlateColor.inkFaint.opacity(0.3)))
-                    .foregroundColor(selectedTag == customTagName ? SlateColor.leafDeep : .gray)
+                    .foregroundColor(selectedTag == customTagName ? SlateColor.leafDeep : SlateColor.inkFaint)
                 }
             }
         }
@@ -224,7 +224,7 @@ struct TagButton: View {
             .frame(maxWidth: .infinity)
             .frame(height: 45)
             .background(RoundedRectangle(cornerRadius: 25).stroke(isSelected ? SlateColor.leafDeep : SlateColor.inkFaint.opacity(0.3), lineWidth: isSelected ? 2 : 1))
-            .foregroundColor(isSelected ? SlateColor.leafDeep : .gray)
+            .foregroundColor(isSelected ? SlateColor.leafDeep : SlateColor.inkFaint)
         }
     }
 }

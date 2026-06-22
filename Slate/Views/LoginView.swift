@@ -7,54 +7,44 @@ struct LoginView: View {
     @State private var prefillName = ""
 
     var body: some View {
-        GeometryReader { geometry in
-            let screenWidth = geometry.size.width
-            
-            NavigationStack {
-                ZStack {
-                    // [배경층] 종이 질감 이미지
-                    Image("background_paper")
-                        .resizable()
-                        .scaledToFill()
-                        .ignoresSafeArea()
-                    
-                    // [콘텐츠층]
-                    VStack(spacing: 15) {
-                        Spacer()
-                        
-                        // 로고 이미지
-                        Image("login_logo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: screenWidth * 0.8)
-                        
-                        Spacer()
-                        
-                        // ── Apple 로그인 (유일한 인증 수단) ──
-                        SignInWithAppleButton(.continue) { request in
-                            request.requestedScopes = [.fullName, .email]
-                        } onCompletion: { result in
-                            handleAppleLogin(result: result)
-                        }
-                        .signInWithAppleButtonStyle(.black)
-                        .frame(width: screenWidth * 0.8, height: 50)
-                        .cornerRadius(16)
-                        
-                        // ── Google 로그인 제거 → "Coming Soon" 안내 ──
-                        // v1.1에서 Firebase Auth Google Provider 추가 예정
-                        
-                        Text("More sign-in options coming soon")
-                            .font(.slateSans(13))
-                            .foregroundColor(SlateColor.inkSoft)
-                            .padding(.top, 5)
-                        
-                        Spacer().frame(height: 40)
-                    }
-                    .padding(.horizontal, 30)
+        NavigationStack {
+            VStack(spacing: 15) {
+                Spacer()
+
+                // 로고 이미지
+                Image("login_logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: 300)
+                    .padding(.horizontal, 40)
+
+                Spacer()
+
+                // ── Apple 로그인 (유일한 인증 수단) ──
+                SignInWithAppleButton(.continue) { request in
+                    request.requestedScopes = [.fullName, .email]
+                } onCompletion: { result in
+                    handleAppleLogin(result: result)
                 }
-                .fullScreenCover(isPresented: $showOnboarding) {
-                    OnboardingView(prefillName: prefillName)
-                }
+                .signInWithAppleButtonStyle(.black)
+                .frame(height: 50)
+                .frame(maxWidth: 320)
+                .cornerRadius(16)
+
+                // ── Google 로그인 제거 → "Coming Soon" 안내 ──
+                // v1.1에서 Firebase Auth Google Provider 추가 예정
+                Text("More sign-in options coming soon")
+                    .font(.slateSans(13))
+                    .foregroundColor(SlateColor.inkSoft)
+                    .padding(.top, 5)
+
+                Spacer().frame(height: 40)
+            }
+            .padding(.horizontal, 30)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .slatePaperBackground()
+            .fullScreenCover(isPresented: $showOnboarding) {
+                OnboardingView(prefillName: prefillName)
             }
         }
     }

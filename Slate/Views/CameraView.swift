@@ -100,10 +100,10 @@ struct CameraView: View {
             cameraService.stop()
         }
         .onReceive(timer) { currentTime = $0 }
-        .alert("저장 완료", isPresented: $showingSaveAlert) {
-            Button("확인", role: .cancel) { }
+        .alert("Saved", isPresented: $showingSaveAlert) {
+            Button("OK", role: .cancel) { }
         } message: {
-            Text("사진이 저장되었습니다.")
+            Text("Your photo has been saved.")
         }
         .alert("Camera Permission", isPresented: $cameraService.showPermissionAlert) {
             Button("Open Settings") {

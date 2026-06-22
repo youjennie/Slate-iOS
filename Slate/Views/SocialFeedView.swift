@@ -11,7 +11,6 @@ struct SocialFeedView: View {
     private var items: [FeedItem] { provider.feed(for: selectedTab) }
 
     var body: some View {
-        ZStack {
             VStack(spacing: 0) {
                 // 커스텀 상단 헤더
                 HStack {
@@ -42,7 +41,8 @@ struct SocialFeedView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
-                .background(Color.white.opacity(0.9))
+                .frame(maxWidth: .infinity)
+                .background(SlateColor.paperSoft)
 
                 // 피드 리스트 (데이터 주도)
                 ScrollView {
@@ -65,8 +65,9 @@ struct SocialFeedView: View {
                     .padding()
                 }
             }
-        }
-        .navigationBarHidden(true)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .slatePaperBackground()
+            .toolbar(.hidden, for: .navigationBar)
     }
 }
 
@@ -114,8 +115,8 @@ struct FeedItemView: View {
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 8)
-                    .background(isFollowing ? SlateColor.inkFaint.opacity(0.1) : SlateColor.ink)
-                    .foregroundColor(isFollowing ? .black : .white)
+                    .background(isFollowing ? SlateColor.leafSoft : SlateColor.ink)
+                    .foregroundColor(isFollowing ? SlateColor.leafDeep : SlateColor.paperSoft)
                     .cornerRadius(10)
                 }
             }
@@ -126,16 +127,15 @@ struct FeedItemView: View {
             // 사진 그리드 (플레이스홀더 — 백엔드 연결 시 실제 썸네일로)
             let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 5)
             LazyVGrid(columns: columns, spacing: 8) {
-                ForEach(1...max(item.photoCount, 1), id: \.self) { i in
+                ForEach(1...max(item.photoCount, 1), id: \.self) { _ in
                     RoundedRectangle(cornerRadius: 12)
                         .fill(SlateColor.inkFaint.opacity(0.1))
                         .frame(height: 65)
                         .overlay(
-                            Text("\(i)")
-                                .font(.system(size: 10, weight: .bold))
-                                .foregroundColor(.white)
-                                .padding(6),
-                            alignment: .topLeading
+                            Image(systemName: "photo")
+                                .font(.system(size: 16))
+                                .foregroundColor(SlateColor.inkFaint.opacity(0.5)),
+                            alignment: .center
                         )
                 }
             }
@@ -152,7 +152,8 @@ struct FeedItemView: View {
             }
         }
         .padding()
-        .background(Color.white.opacity(0.8))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(SlateColor.paperSoft)
         .cornerRadius(20)
         .shadow(color: SlateColor.ink.opacity(0.05), radius: 8, x: 0, y: 4)
     }
@@ -196,7 +197,7 @@ struct ReactionButton: View {
                     .stroke(isClicked ? SlateColor.inkFaint.opacity(0.3) : Color.clear, lineWidth: 1)
             )
             .cornerRadius(12)
-            .foregroundColor(isClicked ? .black : .gray)
+            .foregroundColor(isClicked ? SlateColor.ink : SlateColor.inkSoft)
         }
         .buttonStyle(PlainButtonStyle())
         .animation(.spring(response: 0.3, dampingFraction: 0.6), value: count)
@@ -213,12 +214,12 @@ struct TabButton: View {
         Button(action: action) {
             Text(title)
                 .font(.system(size: 14, weight: isSelected ? .bold : .medium))
-                .foregroundColor(isSelected ? .black : .gray)
+                .foregroundColor(isSelected ? SlateColor.ink : SlateColor.inkSoft)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 8)
-                .background(isSelected ? Color.white : Color.clear)
+                .background(isSelected ? SlateColor.paperSoft : Color.clear)
                 .cornerRadius(18)
-                .shadow(color: isSelected ? .black.opacity(0.1) : .clear, radius: 4)
+                .shadow(color: isSelected ? SlateColor.ink.opacity(0.1) : .clear, radius: 4)
                 .padding(2)
         }
     }

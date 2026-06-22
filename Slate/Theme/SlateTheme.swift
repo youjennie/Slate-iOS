@@ -44,16 +44,8 @@ enum SlateThemeID: String, CaseIterable, Identifiable {
     var swatch: [Color] { [palette.leaf, palette.leafDeep, palette.ink] }
 
     var palette: SlatePalette {
-        // ── 모든 테마 공통: 흰 종이 배경 + 파인 그린 잉크 ──
-        let paper     = Color(hex: "#FBFAF5")   // 따뜻한 화이트(종이)
+        // ── 모든 테마 공통: 흰 종이 배경(살짝 테마톤이 도는 화이트) ──
         let paperSoft = Color(hex: "#FFFFFF")
-        let paperDeep = Color(hex: "#EFEDE3")
-        let sand      = Color(hex: "#ECEADD")
-        let sandDeep  = Color(hex: "#DAD6C2")
-        let ink       = Color(hex: "#214944")
-        let inkSoft   = Color(hex: "#4E6962")
-        let inkFaint  = Color(hex: "#9AA39A")
-        let navBar    = Color(hex: "#214944")
 
         // 카테고리 구분용 보조색(테마 공통) — 포인트색과 함께 쓰여 다양성 확보
         let honey = Color(hex: "#CDB86A"); let honeyDeep = Color(hex: "#9A863C")
@@ -61,17 +53,28 @@ enum SlateThemeID: String, CaseIterable, Identifiable {
         let sky   = Color(hex: "#5E9A8F"); let skyDeep   = Color(hex: "#356F64")
         let lilac = Color(hex: "#A9B589"); let lilacDeep = Color(hex: "#6C7B4C")
 
-        // ── 포인트(액센트) 컬러만 테마별로 달라진다 ──
+        // ── 테마별 정체성: 배경 톤 / 잉크 / 네비바 / 포인트색이 함께 바뀐다 ──
+        //    (배경은 흰색을 유지하되 미세한 테마 톤, 네비바·강조는 확실히 달라짐)
+        let paper, paperDeep, sand, sandDeep: Color
+        let ink, inkSoft, inkFaint, navBar: Color
         let leaf, leafDeep, leafSoft: Color
         switch self {
         case .olive:
-            leaf = Color(hex: "#C1C177"); leafDeep = Color(hex: "#7C8A3C"); leafSoft = Color(hex: "#E4E4C7")
+            paper = Color(hex: "#FBFBF3"); paperDeep = Color(hex: "#EEEFE0"); sand = Color(hex: "#ECEDDB"); sandDeep = Color(hex: "#D8DABF")
+            ink = Color(hex: "#2C3A18"); inkSoft = Color(hex: "#5C6A3C"); inkFaint = Color(hex: "#A2A88C"); navBar = Color(hex: "#46521F")
+            leaf = Color(hex: "#C1C177"); leafDeep = Color(hex: "#7C8A3C"); leafSoft = Color(hex: "#E6E6C8")
         case .forest:
+            paper = Color(hex: "#F6FAF7"); paperDeep = Color(hex: "#E3EEE6"); sand = Color(hex: "#DEEAE1"); sandDeep = Color(hex: "#C4D7CB")
+            ink = Color(hex: "#1E3F31"); inkSoft = Color(hex: "#456B59"); inkFaint = Color(hex: "#92A89B"); navBar = Color(hex: "#2C5141")
             leaf = Color(hex: "#6FA98C"); leafDeep = Color(hex: "#3E7259"); leafSoft = Color(hex: "#CFE2D6")
         case .clay:
-            leaf = Color(hex: "#CC9079"); leafDeep = Color(hex: "#9A5740"); leafSoft = Color(hex: "#ECD5CA")
+            paper = Color(hex: "#FCF8F4"); paperDeep = Color(hex: "#F1E7DF"); sand = Color(hex: "#F0E3D8"); sandDeep = Color(hex: "#DEC8B7")
+            ink = Color(hex: "#4A2C1E"); inkSoft = Color(hex: "#7A5544"); inkFaint = Color(hex: "#B49C8E"); navBar = Color(hex: "#6E3B27")
+            leaf = Color(hex: "#CC9079"); leafDeep = Color(hex: "#9A5740"); leafSoft = Color(hex: "#EFD7CB")
         case .dusk:
-            leaf = Color(hex: "#9E96C6"); leafDeep = Color(hex: "#655B98"); leafSoft = Color(hex: "#DCD8EC")
+            paper = Color(hex: "#F9F8FC"); paperDeep = Color(hex: "#EBE8F3"); sand = Color(hex: "#E8E5F2"); sandDeep = Color(hex: "#CECAE2")
+            ink = Color(hex: "#2E2950"); inkSoft = Color(hex: "#5A5384"); inkFaint = Color(hex: "#A6A1C2"); navBar = Color(hex: "#423A6B")
+            leaf = Color(hex: "#9E96C6"); leafDeep = Color(hex: "#655B98"); leafSoft = Color(hex: "#DEDAEF")
         }
 
         return SlatePalette(
