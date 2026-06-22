@@ -317,7 +317,7 @@ struct MonthSectionView: View {
                         } else {
                             NavigationLink(destination: DailyPhotoView(date: date, selectedCategory: selectedCategory)) {
                                 CalendarCell(day: day, size: cellSize, photoCount: recordsForDate.count,
-                                            firstImage: UIImage(data: recordsForDate.first?.imageData ?? Data()))
+                                            firstImage: recordsForDate.first?.thumbnail(maxPixel: cellSize))
                             }
                             .buttonStyle(PlainButtonStyle())
                         }

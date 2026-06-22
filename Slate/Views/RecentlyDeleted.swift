@@ -98,7 +98,7 @@ struct RecentlyDeletedView: View {
                                 
                                 LazyVGrid(columns: columns, spacing: 10) {
                                     ForEach(records) { record in
-                                        if let data = record.imageData, let uiImage = UIImage(data: data) {
+                                        if let uiImage = record.thumbnail(maxPixel: (UIScreen.main.bounds.width - 52) / 3) {
                                             ZStack(alignment: .bottom) {
                                                 Image(uiImage: uiImage)
                                                     .resizable()

@@ -141,7 +141,7 @@ struct DailyPhotoView: View {
 
             LazyVGrid(columns: columns, spacing: 8) {
                 ForEach(records) { record in
-                    if let data = record.imageData, let uiImage = UIImage(data: data) {
+                    if let uiImage = record.thumbnail(maxPixel: cellSize) {
                         ZStack(alignment: .topTrailing) {
                             Image(uiImage: uiImage).resizable().scaledToFill()
                                 .frame(width: cellSize, height: cellSize)

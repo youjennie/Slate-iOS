@@ -53,7 +53,7 @@ struct MonthSummaryView: View {
                         let record = records.first {
                             Calendar.current.isDate($0.date, inSameDayAs: date) && !$0.isDeleted
                         }
-                        SummaryCell(day: day, image: record?.imageData != nil ? UIImage(data: record!.imageData!) : nil)
+                        SummaryCell(day: day, image: record?.thumbnail(maxPixel: 120))
                     }
                 }
             }
