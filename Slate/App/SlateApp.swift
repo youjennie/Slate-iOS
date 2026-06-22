@@ -28,6 +28,7 @@ struct SlateApp: App {
     }()
 
     @StateObject var spaceManager = SpaceManager.shared
+    @StateObject var themeManager = ThemeManager.shared
 
     var body: some Scene {
         WindowGroup {
@@ -45,6 +46,7 @@ struct SlateApp: App {
             .animation(.spring(response: 0.5, dampingFraction: 0.8), value: spaceManager.isLoggedIn)
             .modelContainer(sharedModelContainer)
             .environmentObject(spaceManager)
+            .environmentObject(themeManager)
             .task { handleLaunchArguments() }
         }
     }

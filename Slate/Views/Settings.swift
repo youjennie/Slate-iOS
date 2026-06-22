@@ -7,6 +7,7 @@ struct MySlateSettingsView: View {
     @Environment(\.dismiss) var dismiss
     @Environment(\.modelContext) private var modelContext
     @ObservedObject var spaceManager = SpaceManager.shared
+    @ObservedObject private var theme = ThemeManager.shared
     @Query(sort: \Space.createdAt) private var spaces: [Space]
 
     let slateWhite = SlateColor.leafDeep
@@ -60,6 +61,7 @@ struct MySlateSettingsView: View {
                     VStack(spacing: 40) {
                         profileHeaderSection
                         keywordSection
+                        appearanceSection
                         settingListSection
                         footerSection
                     }
@@ -205,6 +207,45 @@ struct MySlateSettingsView: View {
                     .padding(.horizontal, 22)
                     .padding(.vertical, 4)
                 }
+            }
+        }
+    }
+
+    // ── 컬러 테마 선택 ──
+    private var appearanceSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Appearance")
+                .font(.slateSans(15, weight: .bold))
+                .foregroundColor(SlateColor.ink)
+                .padding(.horizontal, 25)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 14) {
+                    ForEach(SlateThemeID.allCases) { t in
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.25)) { theme.themeID = t }
+                            UISelectionFeedbackGenerator().selectionChanged()
+                        } label: {
+                            VStack(spacing: 8) {
+                                HStack(spacing: 0) {
+                                    ForEach(Array(t.swatch.enumerated()), id: \.offset) { _, c in
+                                        Rectangle().fill(c).frame(width: 24, height: 48)
+                                    }
+                                }
+                                .clipShape(RoundedRectangle(cornerRadius: 14))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 14)
+                                        .stroke(theme.themeID == t ? SlateColor.ink : SlateColor.inkFaint.opacity(0.25),
+                                                lineWidth: theme.themeID == t ? 2.5 : 1)
+                                )
+                                Text(t.label)
+                                    .font(.slateSans(11, weight: theme.themeID == t ? .bold : .regular))
+                                    .foregroundColor(theme.themeID == t ? SlateColor.ink : SlateColor.inkSoft)
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 25)
+                .padding(.vertical, 2)
             }
         }
     }

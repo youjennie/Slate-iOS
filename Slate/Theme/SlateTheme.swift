@@ -14,63 +14,131 @@ extension Color {
     }
 }
 
-// MARK: - Slate "Pine & Olive" palette
-/// 딥 파인(#214944) + 올리브(#C1C177) + 샌드(#D8D4B8) 기반의 차분한 어스 톤.
-/// 토큰 이름은 의미 기준으로 유지(leaf=주액센트, sky=틸 등), 값만 이 팔레트로.
+// MARK: - 팔레트 정의 (한 테마의 모든 색)
+struct SlatePalette {
+    let paper, paperSoft, paperDeep, sand, sandDeep: Color
+    let ink, inkSoft, inkFaint: Color
+    let leaf, leafDeep, leafSoft: Color
+    let honey, honeyDeep: Color
+    let pink, pinkDeep, sky, skyDeep, lilac, lilacDeep: Color
+    let navBar: Color
+}
+
+// MARK: - 선택 가능한 테마 프리셋
+enum SlateThemeID: String, CaseIterable, Identifiable {
+    case pineOlive, softMist, warmBotanic
+    var id: String { rawValue }
+    var label: String {
+        switch self {
+        case .pineOlive:   return "Pine & Olive"
+        case .softMist:    return "Soft Mist"
+        case .warmBotanic: return "Warm Botanic"
+        }
+    }
+    /// 미리보기 칩에 쓸 대표 3색 (바탕/주액센트/잉크)
+    var swatch: [Color] { [palette.paper, palette.leaf, palette.ink] }
+
+    var palette: SlatePalette {
+        switch self {
+        case .pineOlive:
+            return SlatePalette(
+                paper: Color(hex: "#E5E2CE"), paperSoft: Color(hex: "#F1EFE2"), paperDeep: Color(hex: "#D8D4B8"),
+                sand: Color(hex: "#D8D4B8"), sandDeep: Color(hex: "#C5C0A0"),
+                ink: Color(hex: "#214944"), inkSoft: Color(hex: "#4E6962"), inkFaint: Color(hex: "#8C988F"),
+                leaf: Color(hex: "#C1C177"), leafDeep: Color(hex: "#7C8A3C"), leafSoft: Color(hex: "#D7D6A7"),
+                honey: Color(hex: "#CDB86A"), honeyDeep: Color(hex: "#9A863C"),
+                pink: Color(hex: "#C79279"), pinkDeep: Color(hex: "#9A5E42"),
+                sky: Color(hex: "#5E9A8F"), skyDeep: Color(hex: "#214944"),
+                lilac: Color(hex: "#A9B589"), lilacDeep: Color(hex: "#6C7B4C"),
+                navBar: Color(hex: "#214944"))
+        case .softMist:
+            return SlatePalette(
+                paper: Color(hex: "#ECEFE7"), paperSoft: Color(hex: "#F8F9F3"), paperDeep: Color(hex: "#E2E6DC"),
+                sand: Color(hex: "#DDE2D6"), sandDeep: Color(hex: "#C9CFBE"),
+                ink: Color(hex: "#33352D"), inkSoft: Color(hex: "#797C6C"), inkFaint: Color(hex: "#A9AB9C"),
+                leaf: Color(hex: "#C2DBA7"), leafDeep: Color(hex: "#88AC60"), leafSoft: Color(hex: "#DDE9CB"),
+                honey: Color(hex: "#EFE7A6"), honeyDeep: Color(hex: "#BBAB52"),
+                pink: Color(hex: "#EBC3B4"), pinkDeep: Color(hex: "#BE7C66"),
+                sky: Color(hex: "#A8D7CE"), skyDeep: Color(hex: "#579E90"),
+                lilac: Color(hex: "#CFC6E2"), lilacDeep: Color(hex: "#8A79B5"),
+                navBar: Color(hex: "#2E332B"))
+        case .warmBotanic:
+            return SlatePalette(
+                paper: Color(hex: "#F6EEDD"), paperSoft: Color(hex: "#FCF7EC"), paperDeep: Color(hex: "#EFE4CC"),
+                sand: Color(hex: "#E9DCC0"), sandDeep: Color(hex: "#DBC9A2"),
+                ink: Color(hex: "#34372B"), inkSoft: Color(hex: "#75735E"), inkFaint: Color(hex: "#A6A28C"),
+                leaf: Color(hex: "#A8C66C"), leafDeep: Color(hex: "#6F8F38"), leafSoft: Color(hex: "#C9DAA1"),
+                honey: Color(hex: "#EAC44C"), honeyDeep: Color(hex: "#C99B2E"),
+                pink: Color(hex: "#F2A7C3"), pinkDeep: Color(hex: "#C25C84"),
+                sky: Color(hex: "#9FC8E8"), skyDeep: Color(hex: "#3F79A6"),
+                lilac: Color(hex: "#C9B6E8"), lilacDeep: Color(hex: "#7C5DB0"),
+                navBar: Color(hex: "#26271F"))
+        }
+    }
+}
+
+// MARK: - 테마 매니저 (앱 전역, 사용자가 설정에서 변경)
+final class ThemeManager: ObservableObject {
+    static let shared = ThemeManager()
+    @Published var themeID: SlateThemeID {
+        didSet { UserDefaults.standard.set(themeID.rawValue, forKey: "slate_themeID") }
+    }
+    var palette: SlatePalette { themeID.palette }
+    private init() {
+        let raw = UserDefaults.standard.string(forKey: "slate_themeID") ?? SlateThemeID.pineOlive.rawValue
+        themeID = SlateThemeID(rawValue: raw) ?? .pineOlive
+    }
+}
+
+// MARK: - 색 토큰 (현재 테마에서 동적으로 읽음)
+/// 화면은 하드코딩 색 대신 이 토큰을 쓴다. 테마가 바뀌면 값이 따라 바뀐다.
 enum SlateColor {
-    // 베이스 (샌드/카드)
-    static let paper      = Color(hex: "#E5E2CE")   // 따뜻한 샌드 바탕
-    static let paperSoft  = Color(hex: "#F1EFE2")   // 카드(밝은 샌드)
-    static let paperDeep  = Color(hex: "#D8D4B8")   // 샌드 딥(지정색)
-    static let sand       = Color(hex: "#D8D4B8")
-    static let sandDeep   = Color(hex: "#C5C0A0")
+    private static var p: SlatePalette { ThemeManager.shared.palette }
 
-    // 잉크 (텍스트) — 딥 파인
-    static let ink        = Color(hex: "#214944")
-    static let inkSoft    = Color(hex: "#4E6962")
-    static let inkFaint   = Color(hex: "#8C988F")
+    static var paper: Color     { p.paper }
+    static var paperSoft: Color { p.paperSoft }
+    static var paperDeep: Color { p.paperDeep }
+    static var sand: Color      { p.sand }
+    static var sandDeep: Color  { p.sandDeep }
 
-    // 주 액센트 — 올리브
-    static let leaf       = Color(hex: "#C1C177")
-    static let leafDeep   = Color(hex: "#7C8A3C")
-    static let leafSoft   = Color(hex: "#D7D6A7")
+    static var ink: Color       { p.ink }
+    static var inkSoft: Color   { p.inkSoft }
+    static var inkFaint: Color  { p.inkFaint }
 
-    // 보조 액센트 — 골드
-    static let honey      = Color(hex: "#CDB86A")
-    static let honeyDeep  = Color(hex: "#9A863C")
+    static var leaf: Color      { p.leaf }
+    static var leafDeep: Color  { p.leafDeep }
+    static var leafSoft: Color  { p.leafSoft }
 
-    // 보조 어스 톤 (Space/포커스 구분용)
-    static let pink       = Color(hex: "#C79279")   // 클레이
-    static let pinkDeep   = Color(hex: "#9A5E42")
-    static let sky        = Color(hex: "#5E9A8F")   // 틸
-    static let skyDeep    = Color(hex: "#214944")
-    static let lilac      = Color(hex: "#A9B589")   // 세이지
-    static let lilacDeep  = Color(hex: "#6C7B4C")
+    static var honey: Color     { p.honey }
+    static var honeyDeep: Color { p.honeyDeep }
 
-    // 다크 pill 내비
-    static let navBar     = Color(hex: "#214944")
+    static var pink: Color      { p.pink }
+    static var pinkDeep: Color  { p.pinkDeep }
+    static var sky: Color       { p.sky }
+    static var skyDeep: Color   { p.skyDeep }
+    static var lilac: Color     { p.lilac }
+    static var lilacDeep: Color { p.lilacDeep }
+
+    static var navBar: Color    { p.navBar }
 
     /// Space/카테고리 → 대표 색 (월렛 카드·포커스 링·스티커 공통)
-    static let spacePalette: [Color] = [leaf, honey, pink, sky, lilac]
+    static var spacePalette: [Color] { [leaf, honey, pink, sky, lilac] }
     static func forSpace(_ index: Int) -> Color {
         let count = spacePalette.count
         return spacePalette[((index % count) + count) % count]
     }
-    /// 카테고리 이름을 안정적으로 같은 색에 매핑 (해시 기반)
     static func forSpace(named name: String) -> Color {
         forSpace(abs(name.hashValue))
     }
 
     /// 색 면 위에 올릴 텍스트용 진한 동색 (대비 확보)
     static func onAccentText(for color: Color) -> Color {
-        switch color {
-        case leaf, leafSoft: return leafDeep
-        case honey:          return honeyDeep
-        case pink:           return pinkDeep
-        case sky:            return skyDeep
-        case lilac:          return lilacDeep
-        default:             return ink
-        }
+        if color == leaf || color == leafSoft { return leafDeep }
+        if color == honey { return honeyDeep }
+        if color == pink  { return pinkDeep }
+        if color == sky   { return skyDeep }
+        if color == lilac { return lilacDeep }
+        return ink
     }
 }
 

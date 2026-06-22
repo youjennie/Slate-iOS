@@ -112,31 +112,34 @@ struct MySlateView: View {
                     HStack {
                         Button(action: { goBackToCalendar() }) {
                             Image(systemName: "chevron.left")
-                                .font(.system(size: 20, weight: .medium))
+                                .font(.system(size: 17, weight: .bold))
                                 .foregroundColor(SlateColor.ink)
-                                .padding(10)
+                                .frame(width: 38, height: 38)
+                                .background(Circle().fill(SlateColor.sand))
                                 .contentShape(Rectangle())
                         }
-                        
+
                         Spacer()
-                        
+
                         Text("My Slate")
                             .font(.system(size: 18, weight: .bold))
-                        
+                            .foregroundColor(SlateColor.ink)
+
                         Spacer()
-                        
+
                         NavigationLink(destination: MySlateSettingsView()) {
-                            Image(systemName: "gearshape")
-                                .font(.system(size: 20))
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: 17))
                                 .foregroundColor(SlateColor.ink)
-                                .padding(10)
+                                .frame(width: 38, height: 38)
+                                .background(Circle().fill(SlateColor.sand))
                         }
                     }
-                    .padding(.top, 10).padding(.bottom, 10)
-                    .padding(.horizontal, 10)
-                    .frame(height: 60)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .frame(height: 56)
                     .background(SlateColor.paperSoft)
-                    .shadow(color: .black.opacity(0.05), radius: 5, y: 2)
+                    .shadow(color: SlateColor.ink.opacity(0.05), radius: 5, y: 2)
 
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 30) {

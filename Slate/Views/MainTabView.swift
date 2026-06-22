@@ -6,6 +6,8 @@ struct MainTabView: View {
     @State private var selectedTab = ProcessInfo.processInfo.arguments.contains("-startMySlate") ? 1 : 0
     @State private var isCameraPresented = false
     @StateObject private var spaceManager = SpaceManager.shared
+    // 테마 변경 시 전체 화면이 새 색으로 다시 그려지도록 관찰
+    @ObservedObject private var theme = ThemeManager.shared
     
     @ViewBuilder
     private func tabButton(icon: String, index: Int) -> some View {
