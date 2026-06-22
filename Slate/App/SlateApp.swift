@@ -35,7 +35,7 @@ struct SlateApp: App {
             Group {
                 if ProcessInfo.processInfo.arguments.contains("-openFeed") {
                     // 로컬 테스트용: 소셜 피드 바로 열기 (릴리즈 영향 없음)
-                    NavigationStack { SocialFeedView() }
+                    FeedTestHarness()
                 } else if spaceManager.isLoggedIn {
                     MainTabView()
                         .onAppear {
@@ -102,6 +102,29 @@ struct SlateApp: App {
             try context.save()
         } catch {
             print("Cleanup error: \(error)")
+        }
+    }
+}
+
+/// 로컬 테스트 하니스 — `-openFeed`로 실행. 실제 앱(Calendar→벨)과 똑같이
+/// NavigationLink로 피드를 push하므로 뒤로가기(dismiss→pop)도 그대로 검증된다.
+private struct FeedTestHarness: View {
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 16) {
+                Text("Feed Test Harness")
+                    .font(.slateSans(15, weight: .bold))
+                    .foregroundColor(SlateColor.inkSoft)
+                NavigationLink(destination: SocialFeedView()) {
+                    Text("Open Feed")
+                        .font(.slateSans(16, weight: .bold))
+                        .foregroundColor(SlateColor.paperSoft)
+                        .padding(.horizontal, 28).padding(.vertical, 14)
+                        .background(Capsule().fill(SlateColor.ink))
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .slatePaperBackground()
         }
     }
 }

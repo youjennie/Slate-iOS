@@ -10,10 +10,24 @@ struct SocialFeedView: View {
     // 사진 공유 여부 — Settings ▸ Photo Privacy와 동일 키 공유 (기본: 비공개)
     @AppStorage("slate_photoPrivacyEnabled") private var photoPrivate = true
 
-    // 데이터 공급자 — 백엔드 연결 시 RemoteFeedProvider로 교체
-    private let provider: FeedProvider = SampleFeedProvider()
+    // 데이터 공급자 — 백엔드 연결되면 자동으로 RemoteFeedProvider 사용
+    private let provider: FeedProvider = FeedProviderFactory.current()
 
-    private var items: [FeedItem] { provider.feed(for: selectedTab) }
+    @State private var items: [FeedItem] = []
+    @State private var isLoading = false
+    @State private var loadError: String?
+
+    private func load() async {
+        isLoading = true
+        loadError = nil
+        do {
+            items = try await provider.feed(for: selectedTab)
+        } catch {
+            items = []
+            loadError = (error as? FeedError)?.errorDescription ?? error.localizedDescription
+        }
+        isLoading = false
+    }
 
     var body: some View {
             VStack(spacing: 0) {
@@ -21,8 +35,11 @@ struct SocialFeedView: View {
                 HStack {
                     Button(action: { dismiss() }) {
                         Image(systemName: "chevron.left")
-                            .font(.system(size: 20, weight: .medium))
+                            .font(.system(size: 18, weight: .bold))
                             .foregroundColor(SlateColor.ink)
+                            .frame(width: 42, height: 42)          // 탭 영역 확보
+                            .background(Circle().fill(SlateColor.sand))
+                            .contentShape(Circle())
                     }
 
                     Spacer()
@@ -57,7 +74,25 @@ struct SocialFeedView: View {
                             introCard
                         }
 
-                        if items.isEmpty {
+                        if isLoading {
+                            ProgressView()
+                                .tint(SlateColor.leafDeep)
+                                .padding(.top, 80)
+                        } else if let loadError {
+                            VStack(spacing: 12) {
+                                Spacer(minLength: 140)
+                                Image(systemName: "wifi.slash")
+                                    .font(.system(size: 38))
+                                    .foregroundColor(SlateColor.inkFaint.opacity(0.4))
+                                Text(loadError)
+                                    .font(.slateSans(14))
+                                    .foregroundColor(SlateColor.inkSoft)
+                                    .multilineTextAlignment(.center)
+                                Button("Retry") { Task { await load() } }
+                                    .font(.slateSans(14, weight: .bold))
+                                    .foregroundColor(SlateColor.leafDeep)
+                            }
+                        } else if items.isEmpty {
                             VStack(spacing: 12) {
                                 Spacer(minLength: 160)
                                 Image(systemName: "person.2")
@@ -74,6 +109,7 @@ struct SocialFeedView: View {
                     }
                     .padding()
                 }
+                .task(id: selectedTab) { await load() }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .slatePaperBackground()
