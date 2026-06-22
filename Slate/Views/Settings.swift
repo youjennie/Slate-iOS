@@ -78,7 +78,7 @@ struct MySlateSettingsView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .slatePaperBackground()
-        .navigationBarHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
         .toolbar(.hidden, for: .tabBar)
         .onAppear {
             editedName = spaceManager.userName

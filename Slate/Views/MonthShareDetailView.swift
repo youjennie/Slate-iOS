@@ -44,7 +44,7 @@ struct MonthShareDetailView: View {
     @MainActor
     private func renderCard() -> Image? {
         let targetView = MonthSummaryView(month: month, records: records, category: category)
-            .frame(width: 390)
+            .frame(width: MonthSummaryView.cardWidth)
         
         let renderer = ImageRenderer(content: targetView)
         renderer.scale = UIScreen.main.scale

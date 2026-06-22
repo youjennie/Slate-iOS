@@ -92,7 +92,7 @@ struct CameraView: View {
                 }
             }
         }
-        .navigationBarHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
         .onAppear {
             cameraService.start()
         }

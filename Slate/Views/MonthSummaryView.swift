@@ -6,7 +6,8 @@ struct MonthSummaryView: View {
     let category: String
     
     let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 5)
-    let slateWhite = SlateColor.leafDeep
+    /// 공유 카드 고정 폭 — 화면 표시·이미지 렌더 양쪽에서 동일 값 사용 (불일치 클리핑 방지)
+    static let cardWidth: CGFloat = 390
     
     var daysInMonth: Int {
         Calendar.current.range(of: .day, in: .month, for: month)?.count ?? 30
@@ -79,7 +80,7 @@ struct MonthSummaryView: View {
                             .frame(height: 12)
                         
                         Capsule()
-                            .fill(Color(slateWhite))
+                            .fill(SlateColor.leafDeep)
                             .frame(width: geo.size.width * CGFloat(recordedDaysCount) / CGFloat(max(daysInMonth, 1)), height: 12)
                     }
                 }
@@ -88,8 +89,8 @@ struct MonthSummaryView: View {
             }
             .padding(.bottom, 60)
         }
-        .frame(width: 400)
-        .background(Color.white)
+        .frame(width: Self.cardWidth)
+        .background(Color.white)   // 공유 이미지용 — 테마와 무관하게 항상 흰 배경
     }
 }
 

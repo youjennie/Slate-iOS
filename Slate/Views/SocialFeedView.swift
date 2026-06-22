@@ -200,12 +200,12 @@ struct FeedItemView: View {
             // 헤더: 프로필 & 이름 & 팔로우 버튼
             HStack {
                 Circle()
-                    .fill(SlateColor.inkFaint.opacity(0.2))
+                    .fill(SlateColor.leafSoft)
                     .frame(width: 40, height: 40)
-                    .overlay(Text(item.authorName.prefix(1)).fontWeight(.bold))
+                    .overlay(Text(item.authorName.prefix(1)).fontWeight(.bold).foregroundColor(SlateColor.leafDeep))
 
                 VStack(alignment: .leading) {
-                    Text(item.authorName).fontWeight(.bold)
+                    Text(item.authorName).fontWeight(.bold).foregroundColor(SlateColor.ink)
                     Text(item.timeAgo).font(.caption).foregroundColor(SlateColor.inkSoft)
                 }
 
@@ -236,6 +236,7 @@ struct FeedItemView: View {
 
             Text("\(item.authorName) has completed a \(item.activity) \(item.streakLabel) streak.")
                 .font(.system(size: 15))
+                .foregroundColor(SlateColor.ink)
 
             // 사진 그리드 (플레이스홀더 — 백엔드 연결 시 실제 썸네일로)
             let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 5)
