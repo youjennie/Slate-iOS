@@ -24,56 +24,66 @@ struct SlatePalette {
     let navBar: Color
 }
 
-// MARK: - 선택 가능한 테마 프리셋
+// MARK: - 선택 가능한 포인트(액센트) 컬러
+/// 배경은 항상 흰 종이로 고정하고, "포인트 컬러"만 사용자가 바꾼다.
+/// (카메라 버튼·게이지·선택 상태 등 강조 요소가 이 컬러로 칠해진다.)
 enum SlateThemeID: String, CaseIterable, Identifiable {
-    case pineOlive, softMist, warmBotanic
+    case olive, forest, clay, dusk
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .pineOlive:   return "Pine & Olive"
-        case .softMist:    return "Soft Mist"
-        case .warmBotanic: return "Warm Botanic"
+        case .olive:  return "Olive"
+        case .forest: return "Forest"
+        case .clay:   return "Clay"
+        case .dusk:   return "Dusk"
         }
     }
-    /// 미리보기 칩에 쓸 대표 3색 (바탕/주액센트/잉크)
-    var swatch: [Color] { [palette.paper, palette.leaf, palette.ink] }
+    /// 설정 칩에 표시할 대표 포인트 컬러
+    var accent: Color { palette.leaf }
+    /// 미리보기 칩에 쓸 대표 3색 (포인트/포인트딥/잉크)
+    var swatch: [Color] { [palette.leaf, palette.leafDeep, palette.ink] }
 
     var palette: SlatePalette {
+        // ── 모든 테마 공통: 흰 종이 배경 + 파인 그린 잉크 ──
+        let paper     = Color(hex: "#FBFAF5")   // 따뜻한 화이트(종이)
+        let paperSoft = Color(hex: "#FFFFFF")
+        let paperDeep = Color(hex: "#EFEDE3")
+        let sand      = Color(hex: "#ECEADD")
+        let sandDeep  = Color(hex: "#DAD6C2")
+        let ink       = Color(hex: "#214944")
+        let inkSoft   = Color(hex: "#4E6962")
+        let inkFaint  = Color(hex: "#9AA39A")
+        let navBar    = Color(hex: "#214944")
+
+        // 카테고리 구분용 보조색(테마 공통) — 포인트색과 함께 쓰여 다양성 확보
+        let honey = Color(hex: "#CDB86A"); let honeyDeep = Color(hex: "#9A863C")
+        let pink  = Color(hex: "#C79279"); let pinkDeep  = Color(hex: "#9A5E42")
+        let sky   = Color(hex: "#5E9A8F"); let skyDeep   = Color(hex: "#356F64")
+        let lilac = Color(hex: "#A9B589"); let lilacDeep = Color(hex: "#6C7B4C")
+
+        // ── 포인트(액센트) 컬러만 테마별로 달라진다 ──
+        let leaf, leafDeep, leafSoft: Color
         switch self {
-        case .pineOlive:
-            return SlatePalette(
-                paper: Color(hex: "#E5E2CE"), paperSoft: Color(hex: "#F1EFE2"), paperDeep: Color(hex: "#D8D4B8"),
-                sand: Color(hex: "#D8D4B8"), sandDeep: Color(hex: "#C5C0A0"),
-                ink: Color(hex: "#214944"), inkSoft: Color(hex: "#4E6962"), inkFaint: Color(hex: "#8C988F"),
-                leaf: Color(hex: "#C1C177"), leafDeep: Color(hex: "#7C8A3C"), leafSoft: Color(hex: "#D7D6A7"),
-                honey: Color(hex: "#CDB86A"), honeyDeep: Color(hex: "#9A863C"),
-                pink: Color(hex: "#C79279"), pinkDeep: Color(hex: "#9A5E42"),
-                sky: Color(hex: "#5E9A8F"), skyDeep: Color(hex: "#214944"),
-                lilac: Color(hex: "#A9B589"), lilacDeep: Color(hex: "#6C7B4C"),
-                navBar: Color(hex: "#214944"))
-        case .softMist:
-            return SlatePalette(
-                paper: Color(hex: "#ECEFE7"), paperSoft: Color(hex: "#F8F9F3"), paperDeep: Color(hex: "#E2E6DC"),
-                sand: Color(hex: "#DDE2D6"), sandDeep: Color(hex: "#C9CFBE"),
-                ink: Color(hex: "#33352D"), inkSoft: Color(hex: "#797C6C"), inkFaint: Color(hex: "#A9AB9C"),
-                leaf: Color(hex: "#C2DBA7"), leafDeep: Color(hex: "#88AC60"), leafSoft: Color(hex: "#DDE9CB"),
-                honey: Color(hex: "#EFE7A6"), honeyDeep: Color(hex: "#BBAB52"),
-                pink: Color(hex: "#EBC3B4"), pinkDeep: Color(hex: "#BE7C66"),
-                sky: Color(hex: "#A8D7CE"), skyDeep: Color(hex: "#579E90"),
-                lilac: Color(hex: "#CFC6E2"), lilacDeep: Color(hex: "#8A79B5"),
-                navBar: Color(hex: "#2E332B"))
-        case .warmBotanic:
-            return SlatePalette(
-                paper: Color(hex: "#F6EEDD"), paperSoft: Color(hex: "#FCF7EC"), paperDeep: Color(hex: "#EFE4CC"),
-                sand: Color(hex: "#E9DCC0"), sandDeep: Color(hex: "#DBC9A2"),
-                ink: Color(hex: "#34372B"), inkSoft: Color(hex: "#75735E"), inkFaint: Color(hex: "#A6A28C"),
-                leaf: Color(hex: "#A8C66C"), leafDeep: Color(hex: "#6F8F38"), leafSoft: Color(hex: "#C9DAA1"),
-                honey: Color(hex: "#EAC44C"), honeyDeep: Color(hex: "#C99B2E"),
-                pink: Color(hex: "#F2A7C3"), pinkDeep: Color(hex: "#C25C84"),
-                sky: Color(hex: "#9FC8E8"), skyDeep: Color(hex: "#3F79A6"),
-                lilac: Color(hex: "#C9B6E8"), lilacDeep: Color(hex: "#7C5DB0"),
-                navBar: Color(hex: "#26271F"))
+        case .olive:
+            leaf = Color(hex: "#C1C177"); leafDeep = Color(hex: "#7C8A3C"); leafSoft = Color(hex: "#E4E4C7")
+        case .forest:
+            leaf = Color(hex: "#6FA98C"); leafDeep = Color(hex: "#3E7259"); leafSoft = Color(hex: "#CFE2D6")
+        case .clay:
+            leaf = Color(hex: "#CC9079"); leafDeep = Color(hex: "#9A5740"); leafSoft = Color(hex: "#ECD5CA")
+        case .dusk:
+            leaf = Color(hex: "#9E96C6"); leafDeep = Color(hex: "#655B98"); leafSoft = Color(hex: "#DCD8EC")
         }
+
+        return SlatePalette(
+            paper: paper, paperSoft: paperSoft, paperDeep: paperDeep,
+            sand: sand, sandDeep: sandDeep,
+            ink: ink, inkSoft: inkSoft, inkFaint: inkFaint,
+            leaf: leaf, leafDeep: leafDeep, leafSoft: leafSoft,
+            honey: honey, honeyDeep: honeyDeep,
+            pink: pink, pinkDeep: pinkDeep,
+            sky: sky, skyDeep: skyDeep,
+            lilac: lilac, lilacDeep: lilacDeep,
+            navBar: navBar)
     }
 }
 
@@ -85,8 +95,8 @@ final class ThemeManager: ObservableObject {
     }
     var palette: SlatePalette { themeID.palette }
     private init() {
-        let raw = UserDefaults.standard.string(forKey: "slate_themeID") ?? SlateThemeID.pineOlive.rawValue
-        themeID = SlateThemeID(rawValue: raw) ?? .pineOlive
+        let raw = UserDefaults.standard.string(forKey: "slate_themeID") ?? SlateThemeID.olive.rawValue
+        themeID = SlateThemeID(rawValue: raw) ?? .olive
     }
 }
 
@@ -175,7 +185,7 @@ struct PaperBackground: View {
             Image("background_paper")
                 .resizable()
                 .scaledToFill()
-                .opacity(0.35)
+                .opacity(0.15)            // 흰 종이 느낌 — 질감만 은은하게
                 .blendMode(.multiply)
                 .allowsHitTesting(false)
         }

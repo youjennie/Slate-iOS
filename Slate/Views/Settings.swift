@@ -37,10 +37,8 @@ struct MySlateSettingsView: View {
     }
 
     var body: some View {
-        ZStack {
-            PaperBackground()
-
-            VStack(spacing: 0) {
+        // ⚠️ 배경은 modifier로 (ZStack+ignoresSafeArea는 콘텐츠에 무한 폭을 줘 가장자리가 잘림)
+        VStack(spacing: 0) {
                 HStack {
                     Button(action: { dismiss() }) {
                         Image(systemName: "chevron.left")
@@ -55,6 +53,7 @@ struct MySlateSettingsView: View {
                     Image(systemName: "chevron.left").opacity(0).padding(10)
                 }
                 .padding(.vertical, 8)
+                .frame(maxWidth: .infinity)
                 .background(SlateColor.paperSoft)
 
                 ScrollView(showsIndicators: false) {
@@ -65,11 +64,13 @@ struct MySlateSettingsView: View {
                         settingListSection
                         footerSection
                     }
+                    .frame(maxWidth: .infinity)
                     .padding(.top, 20)
                     .padding(.bottom, 100)
                 }
-            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .slatePaperBackground()
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .tabBar)
         .onAppear {
@@ -214,7 +215,7 @@ struct MySlateSettingsView: View {
     // ── 컬러 테마 선택 ──
     private var appearanceSection: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Appearance")
+            Text("Point Color")
                 .font(.slateSans(15, weight: .bold))
                 .foregroundColor(SlateColor.ink)
                 .padding(.horizontal, 25)

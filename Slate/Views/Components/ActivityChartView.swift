@@ -48,6 +48,7 @@ struct ActivityChartView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity)
         .frame(height: maxHeight + 40, alignment: .bottom)
     }
 }

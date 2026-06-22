@@ -101,45 +101,42 @@ struct MySlateView: View {
     }
 
     var body: some View {
-        ZStack {
-                // [1] 배경 레이어 (종이 질감)
-                PaperBackground()
+        // ⚠️ 배경은 ZStack 레이어가 아니라 .slatePaperBackground() modifier로 깐다.
+        //    PaperBackground는 ignoresSafeArea라 ZStack에 넣으면 콘텐츠에 '무한 폭'이 제안되어
+        //    헤더 좌/우 버튼·범례·차트 등 가장자리 요소가 화면 밖으로 밀려 잘린다.
+        //    (Calendar 화면이 쓰는 검증된 패턴과 동일하게 맞춘다.)
+        VStack(spacing: 0) {
 
-                // [2] 콘텐츠 레이어
-                VStack(spacing: 0) {
-                    
                     // --- 상단 헤더 ---
-                    HStack {
-                        Button(action: { goBackToCalendar() }) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 17, weight: .bold))
-                                .foregroundColor(SlateColor.ink)
-                                .frame(width: 38, height: 38)
-                                .background(Circle().fill(SlateColor.sand))
-                                .contentShape(Rectangle())
+                    Text("My Slate")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(SlateColor.ink)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .overlay(alignment: .leading) {
+                            Button(action: { goBackToCalendar() }) {
+                                ZStack {
+                                    Circle().fill(SlateColor.sand).frame(width: 42, height: 42)
+                                    Image(systemName: "chevron.left")
+                                        .font(.system(size: 18, weight: .bold))
+                                        .foregroundColor(SlateColor.ink)
+                                }
+                            }
+                            .padding(.leading, 16)
                         }
-
-                        Spacer()
-
-                        Text("My Slate")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(SlateColor.ink)
-
-                        Spacer()
-
-                        NavigationLink(destination: MySlateSettingsView()) {
-                            Image(systemName: "gearshape.fill")
-                                .font(.system(size: 17))
-                                .foregroundColor(SlateColor.ink)
-                                .frame(width: 38, height: 38)
-                                .background(Circle().fill(SlateColor.sand))
+                        .overlay(alignment: .trailing) {
+                            NavigationLink(destination: MySlateSettingsView()) {
+                                ZStack {
+                                    Circle().fill(SlateColor.sand).frame(width: 42, height: 42)
+                                    Image(systemName: "gearshape.fill")
+                                        .font(.system(size: 19, weight: .semibold))
+                                        .foregroundColor(SlateColor.ink)
+                                }
+                            }
+                            .padding(.trailing, 16)
                         }
-                    }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .frame(height: 56)
-                    .background(SlateColor.paperSoft)
-                    .shadow(color: SlateColor.ink.opacity(0.05), radius: 5, y: 2)
+                        .background(SlateColor.paperSoft)
+                        .shadow(color: SlateColor.ink.opacity(0.05), radius: 5, y: 2)
 
                     ScrollView(showsIndicators: false) {
                         VStack(spacing: 30) {
@@ -195,7 +192,7 @@ struct MySlateView: View {
                                                 legendChip(seg)
                                             }
                                         }
-                                        .padding(.horizontal, 30)
+                                        .padding(.horizontal, 24)
                                     }
                                 }
                             }
@@ -219,12 +216,16 @@ struct MySlateView: View {
                                 statBadge(value: "\(progress.longestStreak)", label: "Best")
                             }
 
-                            Spacer().frame(height: 16)
+                            // 떠있는 카메라 버튼(-22 offset)에 마지막 줄이 가려지지 않도록 하단 여백 확보
+                            Spacer().frame(height: 52)
                         }
+                        .frame(maxWidth: .infinity)
+                        .padding(.bottom, 8)
                     }
-                }
-            }
-        .navigationBarHidden(true)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .slatePaperBackground()
+        .toolbar(.hidden, for: .navigationBar)
         .onAppear { futureImage = FutureSelfStore.load() }
         .alert("Couldn't generate", isPresented: $showGenError) {
             Button("OK", role: .cancel) { }
