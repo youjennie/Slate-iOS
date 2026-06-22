@@ -33,7 +33,10 @@ struct SlateApp: App {
     var body: some Scene {
         WindowGroup {
             Group {
-                if spaceManager.isLoggedIn {
+                if ProcessInfo.processInfo.arguments.contains("-openFeed") {
+                    // 로컬 테스트용: 소셜 피드 바로 열기 (릴리즈 영향 없음)
+                    NavigationStack { SocialFeedView() }
+                } else if spaceManager.isLoggedIn {
                     MainTabView()
                         .onAppear {
                             cleanupDeletedRecords()

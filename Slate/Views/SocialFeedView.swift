@@ -5,6 +5,11 @@ struct SocialFeedView: View {
     @Environment(\.dismiss) var dismiss
     @State private var selectedTab: SocialFeedTab = .all
 
+    // 최초 진입 안내 카드 표시 여부 (한 번 닫으면 다시 안 뜸)
+    @AppStorage("slate_socialFeedIntroSeen") private var introSeen = false
+    // 사진 공유 여부 — Settings ▸ Photo Privacy와 동일 키 공유 (기본: 비공개)
+    @AppStorage("slate_photoPrivacyEnabled") private var photoPrivate = true
+
     // 데이터 공급자 — 백엔드 연결 시 RemoteFeedProvider로 교체
     private let provider: FeedProvider = SampleFeedProvider()
 
@@ -47,6 +52,11 @@ struct SocialFeedView: View {
                 // 피드 리스트 (데이터 주도)
                 ScrollView {
                     VStack(spacing: 20) {
+                        // 최초 오픈 시 1회 안내 카드
+                        if !introSeen {
+                            introCard
+                        }
+
                         if items.isEmpty {
                             VStack(spacing: 12) {
                                 Spacer(minLength: 160)
@@ -68,6 +78,73 @@ struct SocialFeedView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .slatePaperBackground()
             .toolbar(.hidden, for: .navigationBar)
+    }
+
+    // MARK: - 최초 오픈 안내 카드
+    private var introCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 8) {
+                Text("🌱")
+                    .font(.system(size: 22))
+                Text("Cheer each other on")
+                    .font(.slateSans(17, weight: .bold))
+                    .foregroundColor(SlateColor.ink)
+                Spacer()
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.25)) { introSeen = true }
+                }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(SlateColor.inkSoft)
+                        .frame(width: 28, height: 28)
+                        .background(Circle().fill(SlateColor.sand))
+                }
+            }
+
+            Text("This is where you see friends keeping their streaks going — send a 👏 to keep them growing.")
+                .font(.slateSans(13))
+                .foregroundColor(SlateColor.inkSoft)
+                .fixedSize(horizontal: false, vertical: true)
+
+            // 프라이버시 안내 — Photo Privacy 설정과 직접 연결됨
+            HStack(alignment: .top, spacing: 8) {
+                Image(systemName: photoPrivate ? "lock.fill" : "lock.open.fill")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(SlateColor.leafDeep)
+                    .padding(.top, 1)
+                Text(photoPrivate
+                     ? "Your photos stay private. They're only shared here when you turn off **Photo Privacy** in Settings."
+                     : "**Photo Privacy is off** — your streak photos can appear in others' feeds. Turn it back on in Settings anytime.")
+                    .font(.slateSans(12))
+                    .foregroundColor(SlateColor.inkSoft)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoundedRectangle(cornerRadius: 14).fill(SlateColor.leafSoft.opacity(0.5)))
+
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.25)) { introSeen = true }
+            }) {
+                Text("Got it")
+                    .font(.slateSans(14, weight: .bold))
+                    .foregroundColor(SlateColor.paperSoft)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Capsule().fill(SlateColor.ink))
+            }
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: 22)
+                .fill(SlateColor.paperSoft)
+                .shadow(color: SlateColor.ink.opacity(0.06), radius: 10, x: 0, y: 4)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 22)
+                .stroke(SlateColor.leaf.opacity(0.35), lineWidth: 1)
+        )
     }
 }
 

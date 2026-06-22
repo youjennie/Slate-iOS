@@ -28,7 +28,8 @@ struct MySlateSettingsView: View {
     @State private var profileImage: UIImage?
     @State private var pickedImages: [UIImage] = []
     @State private var notificationsEnabled = true
-    @State private var photoPrivacyEnabled = true
+    // 사진 공유 여부 — SocialFeed 안내 카드와 동일 키 공유 (기본: 비공개)
+    @AppStorage("slate_photoPrivacyEnabled") private var photoPrivacyEnabled = true
     
     // ── 계정 삭제 확인 다이얼로그 ──
     @State private var showDeleteConfirmation = false
