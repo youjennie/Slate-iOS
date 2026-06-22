@@ -1,9 +1,23 @@
 import SwiftUI
 import SwiftData
 import AuthenticationServices
+#if canImport(FirebaseCore)
+import FirebaseCore
+#endif
 
 @main
 struct SlateApp: App {
+    // ── Firebase 초기화 ──
+    // SDK(SPM)와 GoogleService-Info.plist가 모두 있을 때만 configure.
+    // 둘 중 하나라도 없으면 가드로 건너뛰어 빌드/실행이 깨지지 않는다.
+    init() {
+        #if canImport(FirebaseCore)
+        if Bundle.main.url(forResource: "GoogleService-Info", withExtension: "plist") != nil {
+            FirebaseApp.configure()
+        }
+        #endif
+    }
+
     // ── SwiftData 컨테이너: PhotoRecord + Space 모두 등록 ──
     // ⚠️ 기존 DB와 호환성을 위해 실패 시 DB 리셋 후 재생성
     var sharedModelContainer: ModelContainer = {
