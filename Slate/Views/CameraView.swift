@@ -18,6 +18,9 @@ struct CameraView: View {
     @State private var autoSave = true
     @State private var showingSaveAlert = false
     @State private var currentAspectRatio: CGFloat = 3 / 4
+    // 카메라 캡처 불가(시뮬/권한없음) 시 라이브러리 선택 폴백
+    @State private var showLibrary = false
+    @State private var pickedImages: [UIImage] = []
     
     // ── 실시간 날짜/시간 (하드코딩 제거) ──
     @State private var currentTime = Date()
@@ -115,6 +118,16 @@ struct CameraView: View {
         } message: {
             Text("Slate needs camera access to capture your moments. Please enable it in Settings.")
         }
+        // 카메라 캡처 불가 시 라이브러리에서 선택 (시뮬레이터/권한없음 폴백)
+        .sheet(isPresented: $showLibrary) {
+            ImagePicker(selectedImages: $pickedImages, detectedDate: Date(), selectionLimit: 1)
+        }
+        .onChange(of: pickedImages) { _, imgs in
+            if let img = imgs.first {
+                savePhoto(img)
+                pickedImages = []
+            }
+        }
     }
     
     // MARK: - 상단 헤더
@@ -150,26 +163,18 @@ struct CameraView: View {
         if cameraService.isCameraAuthorized {
             // ── 실제 카메라로 촬영 + 선택한 스타일(날짜/시간 워터마크) 합성 ──
             cameraService.takePhoto { image in
-                guard let uiImage = image else { return }
                 Task { @MainActor in
-                    savePhoto(composited(uiImage))
+                    if let uiImage = image {
+                        savePhoto(composited(uiImage))
+                    } else {
+                        // 캡처 실패(시뮬레이터 등) → 라이브러리에서 선택하도록 폴백
+                        showLibrary = true
+                    }
                 }
             }
         } else {
-            // 카메라 권한 없을 때 → 필터 오버레이만 렌더링해서 저장 (기존 방식 폴백)
-            let screenWidth = UIScreen.main.bounds.width
-            let cameraHeight = screenWidth / currentAspectRatio
-            let renderer = ImageRenderer(content:
-                ZStack {
-                    Rectangle().fill(SlateColor.inkFaint.opacity(0.1))
-                    filterOverlayView(index: selectedFilterIndex)
-                }
-                .frame(width: screenWidth, height: cameraHeight)
-            )
-            renderer.scale = UIScreen.main.scale
-            if let uiImage = renderer.uiImage {
-                savePhoto(uiImage)
-            }
+            // 카메라 권한 없음/시뮬레이터 → 라이브러리에서 선택 (빈 이미지 저장 안 함)
+            showLibrary = true
         }
     }
     
@@ -246,9 +251,10 @@ struct CameraView: View {
             // 셔터 버튼
             Button(action: { takePhotoAndSave() }) {
                 Circle()
-                    .fill(SlateColor.leafDeep)
+                    .fill(SlateColor.leaf)
                     .frame(width: 75, height: 75)
-                    .overlay(Image(systemName: "plus").font(.system(size: 28, weight: .bold)).foregroundColor(.white))
+                    .overlay(Circle().stroke(SlateColor.ink.opacity(0.15), lineWidth: 2).frame(width: 64, height: 64))
+                    .overlay(Image(systemName: "camera.fill").font(.system(size: 26, weight: .semibold)).foregroundColor(SlateColor.ink))
             }
             
             Spacer()
