@@ -13,11 +13,14 @@ struct MonthSummaryView: View {
         Calendar.current.range(of: .day, in: .month, for: month)?.count ?? 30
     }
     
+    /// 이 달(month)에 속한 기록만, 고유 날짜 수로 카운트 (다른 달 기록은 제외)
     var recordedDaysCount: Int {
-        // ── isDeleted 필터링 추가 ──
-        let activeRecords = records.filter { !$0.isDeleted }
-        let uniqueDays = Set(activeRecords.map { Calendar.current.startOfDay(for: $0.date) })
-        return uniqueDays.count
+        let cal = Calendar.current
+        let active = records.filter {
+            !$0.isDeleted && cal.isDate($0.date, equalTo: month, toGranularity: .month)
+        }
+        let uniqueDays = Set(active.map { cal.startOfDay(for: $0.date) })
+        return min(uniqueDays.count, daysInMonth)
     }
 
     var body: some View {
@@ -66,7 +69,7 @@ struct MonthSummaryView: View {
                     ZStack(alignment: .leading) {
                         Capsule().fill(SlateColor.inkFaint.opacity(0.15)).frame(height: 10)
                         Capsule().fill(SlateColor.leafDeep)
-                            .frame(width: geo.size.width * CGFloat(recordedDaysCount) / CGFloat(max(daysInMonth, 1)), height: 10)
+                            .frame(width: geo.size.width * min(CGFloat(recordedDaysCount) / CGFloat(max(daysInMonth, 1)), 1), height: 10)
                     }
                 }
                 .frame(height: 10)
