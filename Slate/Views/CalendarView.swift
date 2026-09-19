@@ -29,7 +29,9 @@ struct CalendarView: View {
     @State private var currentTime = Date()
     @State private var showActionSheet = false
     @State private var targetDate: Date = Date()
-    
+    // ── UC-04: 과거 날짜 편집 게이트 대상 (광고 3회 후 편집 허용) ──
+    @State private var pastEditTarget: PastEditTarget? = nil
+
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
     // ── 동적 월 범위: 오늘 ±6개월 기본 + 기록이 있는 달은 범위 밖이라도 무조건 포함 ──
@@ -82,6 +84,7 @@ struct CalendarView: View {
                                 MonthSectionView(month: month,
                                                  showActionSheet: $showActionSheet,
                                                  targetDate: $targetDate,
+                                                 pastEditTarget: $pastEditTarget,
                                                  allRecords: activeRecords,
                                                  totalWidth: totalWidth,
                                                  selectedCategory: selectedCategory)
@@ -116,6 +119,16 @@ struct CalendarView: View {
                 NavigationStack {
                     CameraView(selectedCategory: selectedCategory)
                         .environmentObject(SpaceManager.shared)
+                }
+            }
+            // ── UC-04: 과거 날짜 편집 게이트 (광고 3회 → 편집 허용) ──
+            .fullScreenCover(item: $pastEditTarget) { target in
+                AdGateView(date: target.date) {
+                    // 광고 3회 완료 → 해당 과거 날짜 추가 플로우 진행
+                    targetDate = target.date
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+                        showActionSheet = true
+                    }
                 }
             }
             .sheet(isPresented: $showWallet) {
@@ -270,6 +283,7 @@ struct MonthSectionView: View {
     let month: Date
     @Binding var showActionSheet: Bool
     @Binding var targetDate: Date
+    @Binding var pastEditTarget: PastEditTarget?
     let allRecords: [PhotoRecord]
     let totalWidth: CGFloat
     let selectedCategory: String
@@ -308,8 +322,13 @@ struct MonthSectionView: View {
                         
                         if recordsForDate.isEmpty {
                             Button(action: {
-                                targetDate = date
-                                showActionSheet = true
+                                // UC-04: 과거 날짜는 광고 게이트를 거친 뒤 추가, 오늘/이후는 바로 추가
+                                if date < Calendar.current.startOfDay(for: Date()) {
+                                    pastEditTarget = PastEditTarget(date: date)
+                                } else {
+                                    targetDate = date
+                                    showActionSheet = true
+                                }
                             }) {
                                 CalendarCell(day: day, size: cellSize, photoCount: 0, firstImage: nil)
                             }
@@ -378,12 +397,146 @@ struct CalendarCell: View {
     }
 }
 
+// MARK: - [6] 과거 날짜 편집 게이트 (UC-04: 리워드 광고 3회)
+
+/// 과거 날짜 편집 대상 (fullScreenCover item용)
+struct PastEditTarget: Identifiable {
+    let id = UUID()
+    let date: Date
+}
+
+/// 리워드 광고 시퀀스 매니저.
+/// AdMob SDK(SPM) 추가 전에는 시뮬레이션으로 게이트가 실제 동작한다.
+/// SDK를 추가하면 `#if canImport(GoogleMobileAds)` 블록의 실제 광고로 교체하면 된다.
+final class RewardedAds {
+    static let shared = RewardedAds()
+    private init() {}
+
+    /// count개의 리워드 광고를 순차 재생. 각 광고 완료 시 progress(누적 시청수) 호출.
+    /// 전부 완료 시 true, 중간 이탈/실패 시 false.
+    func showSequence(count: Int, progress: @escaping (Int) async -> Void) async -> Bool {
+        #if canImport(GoogleMobileAds)
+        // TODO(AdMob): 여기서 GADRewardedAd를 count회 로드→present.
+        //   각 onUserEarnedReward에서 progress(누적) 호출, 마지막 성공 시 true.
+        //   광고 로드 실패/유저 이탈 시 false 반환(편집 잠금 유지).
+        //   SDK 추가 전까지는 아래 시뮬레이션을 사용.
+        return await simulate(count: count, progress: progress)
+        #else
+        return await simulate(count: count, progress: progress)
+        #endif
+    }
+
+    private func simulate(count: Int, progress: @escaping (Int) async -> Void) async -> Bool {
+        for i in 1...count {
+            try? await Task.sleep(nanoseconds: 1_200_000_000)   // 광고 1편 재생 흉내
+            await progress(i)
+        }
+        return true
+    }
+}
+
+/// SCR-06: 과거 기록 추가/수정 안내 + 광고 시청 게이트
+struct AdGateView: View {
+    let date: Date
+    var onUnlock: () -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var watching = false
+    @State private var watched = 0
+    private let total = 3
+
+    private var dateText: String {
+        date.formatted(.dateTime.month(.wide).day().year())
+    }
+
+    var body: some View {
+        VStack(spacing: 22) {
+            Spacer()
+
+            Image(systemName: "clock.arrow.circlepath")
+                .font(.system(size: 46, weight: .regular))
+                .foregroundColor(SlateColor.leafDeep)
+
+            VStack(spacing: 8) {
+                Text("Add to a past day")
+                    .font(.slateSans(21, weight: .bold))
+                    .foregroundColor(SlateColor.ink)
+                Text(dateText)
+                    .font(.slateSans(13, weight: .semibold))
+                    .foregroundColor(SlateColor.inkSoft)
+            }
+
+            Text("To add or edit a record on a past day,\nplease watch \(total) short ads.")
+                .font(.slateSans(14))
+                .foregroundColor(SlateColor.inkSoft)
+                .multilineTextAlignment(.center)
+                .lineSpacing(3)
+
+            if watching {
+                VStack(spacing: 10) {
+                    ProgressView(value: Double(watched), total: Double(total))
+                        .tint(SlateColor.leaf)
+                        .frame(maxWidth: 220)
+                    Text("Ad \(min(watched + 1, total)) of \(total)…")
+                        .font(.slateSans(12, weight: .semibold))
+                        .foregroundColor(SlateColor.inkSoft)
+                }
+                .padding(.top, 4)
+            }
+
+            Spacer()
+
+            VStack(spacing: 12) {
+                Button(action: start) {
+                    Text(watching ? "Watching…" : "Watch \(total) ads & continue")
+                        .font(.slateSans(16, weight: .bold))
+                        .foregroundColor(SlateColor.paperSoft)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 15)
+                        .background(Capsule().fill(watching ? SlateColor.inkFaint : SlateColor.leaf))
+                }
+                .disabled(watching)
+
+                Button("Not now") { dismiss() }
+                    .font(.slateSans(14, weight: .semibold))
+                    .foregroundColor(SlateColor.inkSoft)
+                    .disabled(watching)
+            }
+            .padding(.horizontal, 8)
+
+            Spacer().frame(height: 16)
+        }
+        .padding(28)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .slatePaperBackground()
+        .interactiveDismissDisabled(watching)   // 광고 도중 스와이프로 못 닫음(이탈 방지)
+    }
+
+    private func start() {
+        watching = true
+        watched = 0
+        Task {
+            let ok = await RewardedAds.shared.showSequence(count: total) { done in
+                await MainActor.run { watched = done }
+            }
+            await MainActor.run {
+                if ok {
+                    onUnlock()
+                    dismiss()
+                } else {
+                    watching = false   // 이탈/실패 → 잠금 유지
+                }
+            }
+        }
+    }
+}
+
 // MARK: - Preview
 #Preview {
     let schema = Schema([PhotoRecord.self, Space.self])
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: schema, configurations: [config])
-    
+
     return MainTabView()
         .modelContainer(container)
         .environmentObject(SpaceManager.shared)
