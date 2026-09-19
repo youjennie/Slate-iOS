@@ -185,10 +185,9 @@ extension Font {
         return .system(size: size, weight: weight)
     }
 
-    /// 헤드라인/타이틀 보이스 — 브랜드는 고딕이므로 Pretendard(SemiBold) 우선, 폴백만 세리프
+    /// 헤드라인/타이틀 보이스 — 브랜드는 고딕 전용. Pretendard 우선, 폴백도 고딕(세리프 미사용).
     static func slateSerif(_ size: CGFloat, weight: Font.Weight = .semibold) -> Font {
-        if pretendardAvailable { return .custom(pretendardName(weight), size: size) }
-        return .system(size: size, weight: weight, design: .serif)
+        slateSans(size, weight: weight)
     }
 
     /// (레거시) 손글씨 — 브랜드 고딕 전환으로 사실상 미사용. Pretendard/시스템으로 폴백.
