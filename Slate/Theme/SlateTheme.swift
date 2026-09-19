@@ -24,18 +24,27 @@ struct SlatePalette {
     let navBar: Color
 }
 
-// MARK: - 선택 가능한 포인트(액센트) 컬러
-/// 배경은 항상 흰 종이로 고정하고, "포인트 컬러"만 사용자가 바꾼다.
-/// (카메라 버튼·게이지·선택 상태 등 강조 요소가 이 컬러로 칠해진다.)
+// MARK: - 브랜드 상수 (한국적 헤리티지 × 자연)
+enum SlateBrand {
+    /// 슬로건 (KR 원문 / EN)
+    static let taglineKR = "차곡차곡 쌓이는 정갈한 나의 하루"
+    static let taglineEN = "Your days, neatly stacked."
+    /// 컨셉: 한옥 툇마루처럼 차분하고 정갈한 기록 공간 (modern heritage minimal × nature)
+}
+
+// MARK: - 선택 가능한 포인트(액센트) 컬러 — 자연 × 한국 헤리티지
+/// 브랜드 가이드라인의 헤리티지 베이스(백회색 배경·고목재색 잉크·기와먹색 네비)는
+/// 모든 테마 공통으로 고정하고, "포인트 컬러"만 자연에서 온 헤리티지 색으로 바꾼다.
+/// (CTA·카메라 버튼·게이지·선택 상태가 이 컬러로 칠해진다.)
 enum SlateThemeID: String, CaseIterable, Identifiable {
-    case olive, forest, clay, dusk
+    case straw, moss, clay, indigo
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .olive:  return "Olive"
-        case .forest: return "Forest"
-        case .clay:   return "Clay"
-        case .dusk:   return "Dusk"
+        case .straw:  return "Straw"    // 짚방석색
+        case .moss:   return "Moss"     // 이끼·자연 초록
+        case .clay:   return "Clay"     // 기와·흙
+        case .indigo: return "Indigo"   // 쪽빛
         }
     }
     /// 설정 칩에 표시할 대표 포인트 컬러
@@ -44,37 +53,34 @@ enum SlateThemeID: String, CaseIterable, Identifiable {
     var swatch: [Color] { [palette.leaf, palette.leafDeep, palette.ink] }
 
     var palette: SlatePalette {
-        // ── 모든 테마 공통: 흰 종이 배경(살짝 테마톤이 도는 화이트) ──
-        let paperSoft = Color(hex: "#FFFFFF")
+        // ── 헤리티지 베이스(브랜드 가이드라인, 전 테마 공통) ──
+        let paper     = Color(hex: "#F7F5F0")   // 백회색 Traditional Plaster — 앱 전체 배경
+        let paperSoft = Color(hex: "#FCFBF7")   // 카드/헤더용 살짝 밝은 회벽
+        let paperDeep = Color(hex: "#EAE6DF")   // 초가은빛 Soft Stone White — 빈 셀/비활성
+        let sand      = Color(hex: "#EAE6DF")
+        let sandDeep  = Color(hex: "#DAD3C6")
+        let ink       = Color(hex: "#5A3B28")   // 고목재색 Deep Timber — 메인 텍스트·1px 라인
+        let inkSoft   = Color(hex: "#8A6F5C")
+        let inkFaint  = Color(hex: "#B3A594")
+        let navBar    = Color(hex: "#33363B")   // 기와먹색 Tile Charcoal — 하단 내비
 
-        // 카테고리 구분용 보조색(테마 공통) — 포인트색과 함께 쓰여 다양성 확보
-        let honey = Color(hex: "#CDB86A"); let honeyDeep = Color(hex: "#9A863C")
-        let pink  = Color(hex: "#C79279"); let pinkDeep  = Color(hex: "#9A5E42")
-        let sky   = Color(hex: "#5E9A8F"); let skyDeep   = Color(hex: "#356F64")
-        let lilac = Color(hex: "#A9B589"); let lilacDeep = Color(hex: "#6C7B4C")
+        // 카테고리 구분용 보조색(자연×헤리티지, 전 테마 공통)
+        let honey = Color(hex: "#DDA261"); let honeyDeep = Color(hex: "#B87F3E")  // 짚
+        let pink  = Color(hex: "#C0794F"); let pinkDeep  = Color(hex: "#8E5230")  // 기와/흙
+        let sky   = Color(hex: "#7FA88F"); let skyDeep   = Color(hex: "#4E7361")  // 청자
+        let lilac = Color(hex: "#9CA36B"); let lilacDeep = Color(hex: "#6B7344")  // 이끼
 
-        // ── 테마별 정체성: 배경 톤 / 잉크 / 네비바 / 포인트색이 함께 바뀐다 ──
-        //    (배경은 흰색을 유지하되 미세한 테마 톤, 네비바·강조는 확실히 달라짐)
-        let paper, paperDeep, sand, sandDeep: Color
-        let ink, inkSoft, inkFaint, navBar: Color
+        // ── 포인트(액센트) 컬러만 테마별로 달라진다 ──
         let leaf, leafDeep, leafSoft: Color
         switch self {
-        case .olive:
-            paper = Color(hex: "#FBFBF3"); paperDeep = Color(hex: "#EEEFE0"); sand = Color(hex: "#ECEDDB"); sandDeep = Color(hex: "#D8DABF")
-            ink = Color(hex: "#2C3A18"); inkSoft = Color(hex: "#5C6A3C"); inkFaint = Color(hex: "#A2A88C"); navBar = Color(hex: "#46521F")
-            leaf = Color(hex: "#C1C177"); leafDeep = Color(hex: "#7C8A3C"); leafSoft = Color(hex: "#E6E6C8")
-        case .forest:
-            paper = Color(hex: "#F6FAF7"); paperDeep = Color(hex: "#E3EEE6"); sand = Color(hex: "#DEEAE1"); sandDeep = Color(hex: "#C4D7CB")
-            ink = Color(hex: "#1E3F31"); inkSoft = Color(hex: "#456B59"); inkFaint = Color(hex: "#92A89B"); navBar = Color(hex: "#2C5141")
-            leaf = Color(hex: "#6FA98C"); leafDeep = Color(hex: "#3E7259"); leafSoft = Color(hex: "#CFE2D6")
-        case .clay:
-            paper = Color(hex: "#FCF8F4"); paperDeep = Color(hex: "#F1E7DF"); sand = Color(hex: "#F0E3D8"); sandDeep = Color(hex: "#DEC8B7")
-            ink = Color(hex: "#4A2C1E"); inkSoft = Color(hex: "#7A5544"); inkFaint = Color(hex: "#B49C8E"); navBar = Color(hex: "#6E3B27")
-            leaf = Color(hex: "#CC9079"); leafDeep = Color(hex: "#9A5740"); leafSoft = Color(hex: "#EFD7CB")
-        case .dusk:
-            paper = Color(hex: "#F9F8FC"); paperDeep = Color(hex: "#EBE8F3"); sand = Color(hex: "#E8E5F2"); sandDeep = Color(hex: "#CECAE2")
-            ink = Color(hex: "#2E2950"); inkSoft = Color(hex: "#5A5384"); inkFaint = Color(hex: "#A6A1C2"); navBar = Color(hex: "#423A6B")
-            leaf = Color(hex: "#9E96C6"); leafDeep = Color(hex: "#655B98"); leafSoft = Color(hex: "#DEDAEF")
+        case .straw:   // 짚방석색 (브랜드 기본 CTA색)
+            leaf = Color(hex: "#DDA261"); leafDeep = Color(hex: "#B87F3E"); leafSoft = Color(hex: "#F2DEC1")
+        case .moss:    // 이끼·자연 초록
+            leaf = Color(hex: "#8B9B5A"); leafDeep = Color(hex: "#5E6B38"); leafSoft = Color(hex: "#DEE3C8")
+        case .clay:    // 기와·흙
+            leaf = Color(hex: "#C0794F"); leafDeep = Color(hex: "#8E5230"); leafSoft = Color(hex: "#EAD3C2")
+        case .indigo:  // 쪽빛
+            leaf = Color(hex: "#5B7C99"); leafDeep = Color(hex: "#3B546E"); leafSoft = Color(hex: "#CFDCE6")
         }
 
         return SlatePalette(
@@ -98,8 +104,8 @@ final class ThemeManager: ObservableObject {
     }
     var palette: SlatePalette { themeID.palette }
     private init() {
-        let raw = UserDefaults.standard.string(forKey: "slate_themeID") ?? SlateThemeID.olive.rawValue
-        themeID = SlateThemeID(rawValue: raw) ?? .olive
+        let raw = UserDefaults.standard.string(forKey: "slate_themeID") ?? SlateThemeID.straw.rawValue
+        themeID = SlateThemeID(rawValue: raw) ?? .straw
     }
 }
 
