@@ -48,7 +48,7 @@ struct MonthSummaryView: View {
                         let record = records.first {
                             Calendar.current.isDate($0.date, inSameDayAs: date) && !$0.isDeleted
                         }
-                        SummaryCell(day: day, image: record?.thumbnail(maxPixel: 120))
+                        SummaryCell(day: day, image: record?.thumbnail(maxPixel: 120), emoji: record?.emoji)
                     }
                 }
             }
@@ -89,32 +89,39 @@ struct MonthSummaryView: View {
     }
 }
 
-// 요약 카드용 작은 셀
+// 요약 카드용 작은 셀 (유동 정사각 — 그리드 폭에 맞춤, 오버플로 없음)
 struct SummaryCell: View {
     let day: Int
     let image: UIImage?
-    
+    var emoji: String? = nil
+
+    private var hasEmoji: Bool { image == nil && (emoji?.isEmpty == false) }
+
     var body: some View {
         ZStack {
             if let uiImage = image {
                 Image(uiImage: uiImage)
                     .resizable()
                     .scaledToFill()
-                    .frame(width: 60, height: 60)
-                    .clipShape(RoundedRectangle(cornerRadius: 15))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            } else if hasEmoji {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(SlateColor.leafSoft)
+                    .overlay(Text(emoji ?? "").font(.system(size: 22)))
             } else {
-                RoundedRectangle(cornerRadius: 15)
+                RoundedRectangle(cornerRadius: 12)
                     .fill(SlateColor.inkFaint.opacity(0.05))
-                    .frame(width: 60, height: 60)
                     .overlay(Circle().fill(SlateColor.inkFaint.opacity(0.2)).frame(width: 4, height: 4))
             }
-            
+
             Text("\(day)")
                 .font(.system(size: 12, weight: .bold))
-                .foregroundColor(image == nil ? SlateColor.inkFaint.opacity(0.5) : .white)
+                .foregroundColor(image != nil ? .white : SlateColor.inkSoft)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 .padding(6)
         }
+        .aspectRatio(1, contentMode: .fit)
+        .frame(maxWidth: .infinity)
     }
 }
 

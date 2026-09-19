@@ -81,7 +81,7 @@ struct CalendarView: View {
                 // (C) 메인 캘린더 리스트
                 ScrollViewReader { proxy in
                     ScrollView {
-                        LazyVStack(spacing: 45) {
+                        LazyVStack(spacing: 20) {
                             ForEach(monthInterval, id: \.self) { month in
                                 MonthSectionView(month: month,
                                                  showActionSheet: $showActionSheet,
@@ -307,10 +307,10 @@ struct MonthSectionView: View {
     let selectedCategory: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 15) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .center, spacing: 10) {
                 Text(month.formatted(.dateTime.month(.wide)))
-                    .font(.slateSans(26, weight: .bold))
+                    .font(.slateSans(22, weight: .bold))
                 
                 NavigationLink(destination: MonthShareDetailView(
                                     month: month,
@@ -328,7 +328,7 @@ struct MonthSectionView: View {
             .padding(.horizontal, 24)
             
             let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 5)
-            LazyVGrid(columns: columns, spacing: 12) {
+            LazyVGrid(columns: columns, spacing: 8) {
                 ForEach(1...31, id: \.self) { day in
                     if let date = Calendar.current.date(byAdding: .day, value: day-1, to: month),
                        Calendar.current.isDate(date, equalTo: month, toGranularity: .month) {
@@ -336,7 +336,7 @@ struct MonthSectionView: View {
                         let recordsForDate = allRecords.filter {
                             Calendar.current.isDate($0.date, inSameDayAs: date) && $0.spaceTag == selectedCategory
                         }
-                        let cellSize = (totalWidth - 80) / 5
+                        let cellSize = (totalWidth - 112) / 5
                         
                         if recordsForDate.isEmpty {
                             Button(action: {
@@ -362,7 +362,7 @@ struct MonthSectionView: View {
                     }
                 }
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 40)
         }
     }
 }
