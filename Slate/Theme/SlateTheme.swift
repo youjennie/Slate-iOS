@@ -46,50 +46,53 @@ struct SlateWordmark: View {
 }
 
 // MARK: - 색 후보 A/B/C (자연 × 한국 헤리티지, 밝고 깨끗하게)
-/// 브라운 잉크 폐기. 셋 다 밝은 배경 + 딥그린/차콜 잉크 + 자연 포인트.
-/// 사용자가 하나 고르면 그걸 기본으로 확정한다.
+/// 디자인 시스템: **흰 배경 + 회색 테두리 + 단일 포인트 컬러.**
+/// 배경/텍스트/테두리는 전 테마 공통(뉴트럴), 사용자는 "포인트 컬러 하나"만 고른다.
 enum SlateThemeID: String, CaseIterable, Identifiable {
-    case freshOlive, hanjiMoss, celadon
+    case olive, sage, terracotta, blue
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .freshOlive: return "A · Fresh Olive"
-        case .hanjiMoss:  return "B · Hanji Moss"
-        case .celadon:    return "C · Celadon"
+        case .olive:      return "Olive"
+        case .sage:       return "Sage"
+        case .terracotta: return "Terracotta"
+        case .blue:       return "Blue"
         }
     }
     /// 설정 칩에 표시할 대표 포인트 컬러
     var accent: Color { palette.leaf }
-    /// 미리보기 칩에 쓸 대표 3색 (포인트/포인트딥/잉크)
-    var swatch: [Color] { [palette.leaf, palette.leafDeep, palette.ink] }
+    /// 미리보기 칩(포인트색 하나)
+    var swatch: [Color] { [palette.leaf] }
 
     var palette: SlatePalette {
-        // 카테고리 보조색은 공통(자연×헤리티지)
-        let honey = Color(hex: "#E4C06A"); let honeyDeep = Color(hex: "#B2933C")  // 노랑/짚
-        let pink  = Color(hex: "#C0794F"); let pinkDeep  = Color(hex: "#8E5230")  // 기와/흙
-        let sky   = Color(hex: "#7FA88F"); let skyDeep   = Color(hex: "#4E7361")  // 청자
-        let lilac = Color(hex: "#9CA36B"); let lilacDeep = Color(hex: "#6B7344")  // 이끼
+        // ── 공통 뉴트럴: 흰 배경 · 근블랙 텍스트 · 회색 테두리 ──
+        let paper     = Color(hex: "#FFFFFF")   // 순백 배경
+        let paperSoft = Color(hex: "#FFFFFF")   // 카드
+        let paperDeep = Color(hex: "#F4F4F3")   // 아주 옅은 회색 fill
+        let sand      = Color(hex: "#F0F0EF")
+        let sandDeep  = Color(hex: "#E3E3E1")
+        let ink       = Color(hex: "#232322")   // 근블랙 텍스트
+        let inkSoft   = Color(hex: "#6E6E6A")   // 보조 텍스트(중간 회색)
+        let inkFaint  = Color(hex: "#C7C7C3")   // 테두리·라인·비활성(연회색)
+        let navBar    = Color(hex: "#232322")   // 하단 내비(뉴트럴 근블랙)
 
-        let paper, paperSoft, paperDeep, sand, sandDeep: Color
-        let ink, inkSoft, inkFaint, navBar: Color
+        // 카테고리 보조색 = 뉴트럴 그레이 (포인트색 하나만 튀게)
+        let honey = Color(hex: "#C7C7C3"); let honeyDeep = Color(hex: "#8E8E8A")
+        let pink  = Color(hex: "#AEAEA9"); let pinkDeep  = Color(hex: "#7C7C77")
+        let sky   = Color(hex: "#D6D6D2"); let skyDeep   = Color(hex: "#9A9A95")
+        let lilac = Color(hex: "#9A9A95"); let lilacDeep = Color(hex: "#6E6E69")
+
+        // ── 단일 포인트 컬러만 테마별로 달라진다 ──
         let leaf, leafDeep, leafSoft: Color
-
         switch self {
-        case .freshOlive:   // A — 크림 배경 · 딥올리브 잉크 · 연두+노랑
-            paper = Color(hex: "#FBFAF3"); paperSoft = Color(hex: "#FFFFFF"); paperDeep = Color(hex: "#EDECDD")
-            sand = Color(hex: "#ECEBDD"); sandDeep = Color(hex: "#D9D8C2")
-            ink = Color(hex: "#2E3A21"); inkSoft = Color(hex: "#6E7A55"); inkFaint = Color(hex: "#A7AE92"); navBar = Color(hex: "#2E3A21")
-            leaf = Color(hex: "#AEBE5A"); leafDeep = Color(hex: "#7C8A3C"); leafSoft = Color(hex: "#E1E4C4")
-        case .hanjiMoss:    // B — 한지 아이보리 · 차콜그린 잉크 · 이끼+기와
-            paper = Color(hex: "#F6F2E9"); paperSoft = Color(hex: "#FCFAF4"); paperDeep = Color(hex: "#E7E0D0")
-            sand = Color(hex: "#E6E0D2"); sandDeep = Color(hex: "#D3CBB6")
-            ink = Color(hex: "#33382E"); inkSoft = Color(hex: "#7C7A64"); inkFaint = Color(hex: "#ABA891"); navBar = Color(hex: "#33363B")
-            leaf = Color(hex: "#8B9B5A"); leafDeep = Color(hex: "#5E6B38"); leafSoft = Color(hex: "#DEE3C8")
-        case .celadon:      // C — 쿨 오프화이트 · 딥파인 잉크 · 청자+짚
-            paper = Color(hex: "#F5F6F1"); paperSoft = Color(hex: "#FFFFFF"); paperDeep = Color(hex: "#E4E7DF")
-            sand = Color(hex: "#E4E7DF"); sandDeep = Color(hex: "#CFD6CC")
-            ink = Color(hex: "#29332E"); inkSoft = Color(hex: "#6B7770"); inkFaint = Color(hex: "#A2ADA6"); navBar = Color(hex: "#2B3330")
-            leaf = Color(hex: "#7FA88F"); leafDeep = Color(hex: "#4E7361"); leafSoft = Color(hex: "#CFE0D5")
+        case .olive:
+            leaf = Color(hex: "#C1C177"); leafDeep = Color(hex: "#8A9440"); leafSoft = Color(hex: "#EDEFDA")
+        case .sage:
+            leaf = Color(hex: "#8FB08A"); leafDeep = Color(hex: "#547A50"); leafSoft = Color(hex: "#DDE8DB")
+        case .terracotta:
+            leaf = Color(hex: "#D08A6A"); leafDeep = Color(hex: "#A05638"); leafSoft = Color(hex: "#F1DACD")
+        case .blue:
+            leaf = Color(hex: "#6E97C0"); leafDeep = Color(hex: "#3E6690"); leafSoft = Color(hex: "#D6E2EF")
         }
 
         return SlatePalette(
@@ -120,8 +123,8 @@ final class ThemeManager: ObservableObject {
             themeID = forced
             return
         }
-        let raw = UserDefaults.standard.string(forKey: "slate_themeID") ?? SlateThemeID.freshOlive.rawValue
-        themeID = SlateThemeID(rawValue: raw) ?? .freshOlive
+        let raw = UserDefaults.standard.string(forKey: "slate_themeID") ?? SlateThemeID.olive.rawValue
+        themeID = SlateThemeID(rawValue: raw) ?? .olive
     }
 }
 
@@ -219,20 +222,11 @@ enum SlateRadius {
     static let pill: CGFloat = 999
 }
 
-// MARK: - 종이 질감 배경 (낙서 컨셉)
-/// 미스트 색 위에 구겨진 종이 결을 은은하게 깐다.
+// MARK: - 배경 (순백)
+/// 흰 배경. (질감 텍스처 제거 — 깨끗한 화이트)
 struct PaperBackground: View {
     var body: some View {
-        ZStack {
-            SlateColor.paper
-            Image("background_paper")
-                .resizable()
-                .scaledToFill()
-                .opacity(0.15)            // 흰 종이 느낌 — 질감만 은은하게
-                .blendMode(.multiply)
-                .allowsHitTesting(false)
-        }
-        .ignoresSafeArea()
+        SlateColor.paper.ignoresSafeArea()
     }
 }
 
