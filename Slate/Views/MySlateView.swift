@@ -3,48 +3,22 @@ import SwiftData
 
 struct MySlateView: View {
     @Environment(\.dismiss) var dismiss
-    @State private var isCameraPresented = false
-
-    // ── AI 미래자아 생성 상태 ──
-    @State private var futureImage: UIImage? = nil
-    @State private var isGenerating = false
-    @State private var genErrorMessage = ""
-    @State private var showGenError = false
 
     /// 뒤로가기 시 실행할 동작 (예: 탭바에서 Calendar 탭으로 전환)
     var onBack: (() -> Void)? = nil
 
     // ── SwiftData에서 실시간 데이터 로딩 ──
     @Query(sort: \PhotoRecord.date) private var allRecords: [PhotoRecord]
-    // Before 이미지(시작점) 소스로 사용
     @Query(sort: \Space.createdAt) private var spaces: [Space]
 
-    // 형님의 컨셉 컬러
-    let slateWhite = SlateColor.leafDeep
-    let slateGreen = SlateColor.leaf
-    let cameraGreen = SlateColor.leaf
-
-    // ── 실시간 계산 (하드코딩 제거) ──
+    // ── 실시간 계산 ──
     private var progress: SlateProgress {
         ProgressCalculator.calculate(from: allRecords)
     }
 
-    /// "Before" = 시작점 사진. 기본 Space의 startingPhoto → 없으면 가장 오래된 기록 사진
-    private var beforeImage: UIImage? {
-        let startingData = spaces.first(where: { $0.isDefault })?.startingPhotoData
-            ?? spaces.first?.startingPhotoData
-        if let data = startingData, let img = UIImage(data: data) { return img }
-        // allRecords는 date 오름차순 → 첫 사진이 가장 오래된 기록
-        if let data = allRecords.first(where: { $0.imageData != nil })?.imageData,
-           let img = UIImage(data: data) { return img }
-        return nil
-    }
-
-    /// 미래 목표 문구 — 기본 Space의 futureMemo 사용
-    private var futureGoal: String {
-        spaces.first(where: { $0.isDefault })?.futureMemo
-            ?? spaces.first?.futureMemo
-            ?? ""
+    private var currentMonthStart: Date {
+        let cal = Calendar.current
+        return cal.date(from: cal.dateComponents([.year, .month], from: Date())) ?? Date()
     }
 
     /// 포커스 게이지용: Space별 활동 비중 (생성 순서대로 안정 색상)
@@ -94,6 +68,7 @@ struct MySlateView: View {
         }
         .padding(.horizontal, 10).padding(.vertical, 5)
         .background(Capsule().fill(SlateColor.paperSoft))
+        .overlay(Capsule().stroke(SlateColor.ink.opacity(0.08), lineWidth: 1))
     }
 
     init(onBack: (() -> Void)? = nil) {
@@ -101,194 +76,147 @@ struct MySlateView: View {
     }
 
     var body: some View {
-        // ⚠️ 배경은 ZStack 레이어가 아니라 .slatePaperBackground() modifier로 깐다.
-        //    PaperBackground는 ignoresSafeArea라 ZStack에 넣으면 콘텐츠에 '무한 폭'이 제안되어
-        //    헤더 좌/우 버튼·범례·차트 등 가장자리 요소가 화면 밖으로 밀려 잘린다.
-        //    (Calendar 화면이 쓰는 검증된 패턴과 동일하게 맞춘다.)
+        // 배경은 .slatePaperBackground() modifier로 (ZStack+ignoresSafeArea는 가장자리 잘림 유발)
         VStack(spacing: 0) {
 
-                    // --- 상단 헤더 ---
-                    Text("My Slate")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(SlateColor.ink)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 56)
-                        .overlay(alignment: .leading) {
-                            Button(action: { goBackToCalendar() }) {
-                                ZStack {
-                                    Circle().fill(SlateColor.sand).frame(width: 42, height: 42)
-                                    Image(systemName: "chevron.left")
-                                        .font(.system(size: 18, weight: .bold))
-                                        .foregroundColor(SlateColor.ink)
-                                }
-                            }
-                            .padding(.leading, 16)
+            // --- 상단 헤더 ---
+            Text("My Slate")
+                .font(.slateSans(18, weight: .bold))
+                .foregroundColor(SlateColor.ink)
+                .frame(maxWidth: .infinity)
+                .frame(height: 56)
+                .overlay(alignment: .leading) {
+                    Button(action: { goBackToCalendar() }) {
+                        ZStack {
+                            Circle().fill(SlateColor.sand).frame(width: 42, height: 42)
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(SlateColor.ink)
                         }
-                        .overlay(alignment: .trailing) {
-                            NavigationLink(destination: MySlateSettingsView()) {
-                                ZStack {
-                                    Circle().fill(SlateColor.sand).frame(width: 42, height: 42)
-                                    Image(systemName: "gearshape.fill")
-                                        .font(.system(size: 19, weight: .semibold))
-                                        .foregroundColor(SlateColor.ink)
-                                }
-                            }
-                            .padding(.trailing, 16)
+                    }
+                    .padding(.leading, 16)
+                }
+                .overlay(alignment: .trailing) {
+                    NavigationLink(destination: MySlateSettingsView()) {
+                        ZStack {
+                            Circle().fill(SlateColor.sand).frame(width: 42, height: 42)
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: 19, weight: .semibold))
+                                .foregroundColor(SlateColor.ink)
                         }
-                        .background(SlateColor.paperSoft)
-                        .shadow(color: SlateColor.ink.opacity(0.05), radius: 5, y: 2)
+                    }
+                    .padding(.trailing, 16)
+                }
+                .background(SlateColor.paperSoft)
+                .overlay(alignment: .bottom) {
+                    Rectangle().fill(SlateColor.ink.opacity(0.08)).frame(height: 1)
+                }
 
-                    ScrollView(showsIndicators: false) {
-                        VStack(spacing: 30) {
-                            // 3. 로고 및 타이틀
-                            VStack(spacing: 0) {
-                                Image("name_logo")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 150)
-                                    .padding(.bottom, -45)
-                                    .padding(.top, -4)
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 30) {
 
-                                Text("Your Future-Self Awaits")
-                                    .font(.slateSans(21, weight: .bold))
-                                    .foregroundColor(SlateColor.ink)
-                                    .padding(.top, 4)
-                                    .padding(.bottom, 8)
+                    // 1. 브랜드 히어로 — 로고 + 슬로건 (헤리티지 톤)
+                    VStack(spacing: 10) {
+                        Image("name_logo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 148)
+                            .padding(.bottom, -44)
+                            .padding(.top, -4)
 
-                                Text("Slate turns your moments into\na picture of who you're becoming.")
-                                    .font(.system(size: 13))
-                                    .foregroundColor(SlateColor.inkSoft)
-                                    .multilineTextAlignment(.center)
-                                    .lineSpacing(2)
-                            }
-                            .padding(.top, 14)
+                        Text(SlateBrand.taglineEN)
+                            .font(.slateSerif(19, weight: .semibold))
+                            .foregroundColor(SlateColor.ink)
 
-                            // 4. Before & After
-                            HStack(spacing: 28) {
-                                comparisonCircle(image: beforeImage, label: "Before", isFuture: false)
-                                futureCircle
-                            }
+                        Text("A calm record of the days you keep.")
+                            .font(.slateSans(13))
+                            .foregroundColor(SlateColor.inkSoft)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(.top, 16)
 
-                            // 5. 포커스 게이지 — 어디에 집중하는지
-                            VStack(spacing: 10) {
-                                Text("Where you're focusing")
-                                    .font(.slateSans(17, weight: .bold))
-                                    .foregroundColor(SlateColor.ink)
-                                Text("\(Int(progress.progressPercent))% closer to your future self")
-                                    .font(.slateSans(12))
-                                    .foregroundColor(SlateColor.inkSoft)
+                    // 2. 포커스 게이지 — 어디에 집중하는지
+                    VStack(spacing: 10) {
+                        Text("Where you're focusing")
+                            .font(.slateSans(17, weight: .bold))
+                            .foregroundColor(SlateColor.ink)
+                        Text(focusSegments.isEmpty ? "Start recording to see your focus"
+                                                   : "\(progress.totalDays) days kept so far")
+                            .font(.slateSans(12))
+                            .foregroundColor(SlateColor.inkSoft)
 
-                                FocusGaugeView(
-                                    segments: focusSegments,
-                                    centerValue: "\(progress.totalDays)",
-                                    centerLabel: "days with Slate",
-                                    size: 158
-                                )
+                        FocusGaugeView(
+                            segments: focusSegments,
+                            centerValue: "\(progress.totalDays)",
+                            centerLabel: "days kept",
+                            size: 158
+                        )
 
-                                if !focusSegments.isEmpty {
-                                    ScrollView(.horizontal, showsIndicators: false) {
-                                        HStack(spacing: 8) {
-                                            ForEach(focusSegments) { seg in
-                                                legendChip(seg)
-                                            }
-                                        }
-                                        .padding(.horizontal, 24)
+                        if !focusSegments.isEmpty {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 8) {
+                                    ForEach(focusSegments) { seg in
+                                        legendChip(seg)
                                     }
                                 }
+                                .padding(.horizontal, 24)
                             }
-
-                            // 6. 주간 활동 — 인터랙티브
-                            VStack(spacing: 10) {
-                                HStack {
-                                    Text("This week")
-                                        .font(.slateSans(17, weight: .bold))
-                                        .foregroundColor(SlateColor.ink)
-                                    Spacer()
-                                }
-                                ActivityChartView(bars: weeklyBars, maxHeight: 104)
-                            }
-                            .padding(.horizontal, 30)
-
-                            // 7. 통계
-                            HStack(spacing: 30) {
-                                statBadge(value: "\(progress.totalDays)", label: "Days")
-                                statBadge(value: "\(progress.currentStreak)", label: "Streak")
-                                statBadge(value: "\(progress.longestStreak)", label: "Best")
-                            }
-
-                            // 떠있는 카메라 버튼(-22 offset)에 마지막 줄이 가려지지 않도록 하단 여백 확보
-                            Spacer().frame(height: 52)
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.bottom, 8)
                     }
+
+                    // 3. 주간 활동 — 인터랙티브
+                    VStack(spacing: 10) {
+                        HStack {
+                            Text("This week")
+                                .font(.slateSans(17, weight: .bold))
+                                .foregroundColor(SlateColor.ink)
+                            Spacer()
+                        }
+                        ActivityChartView(bars: weeklyBars, maxHeight: 104)
+                    }
+                    .padding(.horizontal, 30)
+
+                    // 4. 통계
+                    HStack(spacing: 30) {
+                        statBadge(value: "\(progress.totalDays)", label: "Days")
+                        statBadge(value: "\(progress.currentStreak)", label: "Streak")
+                        statBadge(value: "\(progress.longestStreak)", label: "Best")
+                    }
+
+                    // 5. Monthly Memory 진입 (UC-05)
+                    NavigationLink(destination: MonthShareDetailView(
+                        month: currentMonthStart,
+                        records: allRecords.filter { !$0.isDeleted },
+                        category: spaces.first(where: { $0.isDefault })?.name ?? spaces.first?.name ?? "Daily"
+                    )) {
+                        HStack(spacing: 10) {
+                            Image(systemName: "square.grid.2x2.fill")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(SlateColor.leafDeep)
+                            Text("Monthly Memory")
+                                .font(.slateSans(15, weight: .bold))
+                                .foregroundColor(SlateColor.ink)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 13, weight: .bold))
+                                .foregroundColor(SlateColor.inkFaint)
+                        }
+                        .padding(16)
+                        .background(RoundedRectangle(cornerRadius: SlateRadius.md).fill(SlateColor.paperSoft))
+                        .overlay(RoundedRectangle(cornerRadius: SlateRadius.md).stroke(SlateColor.ink.opacity(0.12), lineWidth: 1))
+                    }
+                    .padding(.horizontal, 24)
+
+                    // 떠있는 카메라 버튼(-22 offset)에 마지막 줄이 가려지지 않도록 하단 여백
+                    Spacer().frame(height: 52)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.bottom, 8)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .slatePaperBackground()
         .toolbar(.hidden, for: .navigationBar)
-        .onAppear { futureImage = FutureSelfStore.load() }
-        .alert("Couldn't generate", isPresented: $showGenError) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(genErrorMessage)
-        }
-    }
-
-    // ── "After" = AI 미래자아 (탭하면 생성, 결과는 로컬 저장) ──
-    private var futureCircle: some View {
-        VStack(spacing: 10) {
-            ZStack {
-                Circle().fill(SlateColor.sand).frame(width: 108, height: 108)
-                if let futureImage {
-                    Image(uiImage: futureImage).resizable().scaledToFill()
-                        .frame(width: 108, height: 108).clipShape(Circle())
-                } else if isGenerating {
-                    ProgressView()
-                } else {
-                    VStack(spacing: 5) {
-                        Image(systemName: "sparkles").font(.system(size: 24)).foregroundColor(slateGreen)
-                        Text(SlateConfig.isImageGenerationAvailable ? "Tap to generate" : "Coming soon")
-                            .font(.system(size: 10)).foregroundColor(SlateColor.inkSoft)
-                    }
-                }
-            }
-            .overlay(Circle().stroke(SlateColor.paperSoft, lineWidth: 3))
-            .shadow(color: SlateColor.ink.opacity(0.10), radius: 7)
-            .onTapGesture {
-                if !isGenerating && SlateConfig.isImageGenerationAvailable {
-                    generateFutureSelf()
-                }
-            }
-            Text("After").font(.system(size: 13, weight: .medium)).foregroundColor(SlateColor.inkSoft)
-        }
-    }
-
-    // ── AI 미래자아 생성 실행 ──
-    private func generateFutureSelf() {
-        guard let base = beforeImage else {
-            genErrorMessage = "먼저 시작점 사진(Before)을 추가해 주세요."
-            showGenError = true
-            return
-        }
-        let goal = futureGoal
-        isGenerating = true
-        Task {
-            do {
-                let result = try await ImageGenerationService.shared
-                    .generateFutureSelf(from: base, futureGoal: goal)
-                FutureSelfStore.save(result)
-                await MainActor.run {
-                    futureImage = result
-                    isGenerating = false
-                }
-            } catch {
-                await MainActor.run {
-                    genErrorMessage = error.localizedDescription
-                    showGenError = true
-                    isGenerating = false
-                }
-            }
-        }
     }
 
     // ── 뒤로가기: 주입된 onBack 실행, 없으면 dismiss 폴백 ──
@@ -300,38 +228,14 @@ struct MySlateView: View {
         }
     }
 
-    // 원형 이미지 컴포넌트 (실제 이미지 / 미래자아 플레이스홀더 대응)
-    private func comparisonCircle(image: UIImage?, label: String, isFuture: Bool) -> some View {
-        VStack(spacing: 10) {
-            ZStack {
-                Circle().fill(SlateColor.sand).frame(width: 108, height: 108)
-                if let image {
-                    Image(uiImage: image).resizable().scaledToFill()
-                        .frame(width: 108, height: 108).clipShape(Circle())
-                } else if isFuture {
-                    VStack(spacing: 5) {
-                        Image(systemName: "sparkles").font(.system(size: 26)).foregroundColor(slateGreen)
-                        Text("Coming soon").font(.system(size: 10)).foregroundColor(SlateColor.inkSoft)
-                    }
-                } else {
-                    // 시작점 사진을 아직 안 찍은 상태
-                    Image(systemName: "camera.fill").font(.system(size: 30)).foregroundColor(SlateColor.inkFaint)
-                }
-            }
-            .overlay(Circle().stroke(SlateColor.paperSoft, lineWidth: 3))
-            .shadow(color: SlateColor.ink.opacity(0.10), radius: 7)
-            Text(label).font(.system(size: 13, weight: .medium)).foregroundColor(SlateColor.inkSoft)
-        }
-    }
-
     // 통계 뱃지 컴포넌트
     private func statBadge(value: String, label: String) -> some View {
         VStack(spacing: 3) {
             Text(value)
-                .font(.system(size: 21, weight: .bold))
+                .font(.slateSans(21, weight: .bold))
                 .foregroundColor(SlateColor.ink)
             Text(label)
-                .font(.system(size: 11))
+                .font(.slateSans(11))
                 .foregroundColor(SlateColor.inkSoft)
         }
     }
@@ -342,7 +246,7 @@ struct MySlateView: View {
     let schema = Schema([PhotoRecord.self, Space.self])
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: schema, configurations: [config])
-    
+
     return NavigationStack {
         MySlateView()
             .modelContainer(container)

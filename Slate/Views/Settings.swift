@@ -35,8 +35,6 @@ struct MySlateSettingsView: View {
     @State private var showDeleteConfirmation = false
     // ── 알림 권한 거부 안내 다이얼로그 ──
     @State private var showNotificationDeniedAlert = false
-    // ── 미래자아 재생성 안내 다이얼로그 ──
-    @State private var showRegenerateConfirm = false
 
     private var initials: String {
         let name = spaceManager.userName.isEmpty ? "User" : spaceManager.userName
@@ -123,11 +121,6 @@ struct MySlateSettingsView: View {
             Button("Cancel", role: .cancel) { }
         } message: {
             Text("Enable notifications in Settings to get your daily Slate reminder.")
-        }
-        .alert("Future Image Reset", isPresented: $showRegenerateConfirm) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text("Open My Slate and tap the 'After' circle to generate a fresh future-self image.")
         }
         // ── 계정 삭제 확인 Alert ──
         .alert("Delete Account", isPresented: $showDeleteConfirmation) {
@@ -318,29 +311,6 @@ struct MySlateSettingsView: View {
                 settingToggleRow(title: "Notifications", isOn: $notificationsEnabled)
             }
             
-            settingGroup(title: "GROWTH DATA") {
-                // AI 미래자아 사용 가능 여부 (Gemini 키 설정 상태)
-                HStack {
-                    Text("AI Future Self").font(.system(size: 16))
-                    Spacer()
-                    Text(SlateConfig.isImageGenerationAvailable ? "On" : "Set API key")
-                        .font(.system(size: 14)).foregroundColor(SlateColor.inkSoft)
-                }.padding(18)
-
-                // 캐시를 비워 다음 My Slate 방문 시 재생성되도록
-                Button(action: {
-                    FutureSelfStore.clear()
-                    UINotificationFeedbackGenerator().notificationOccurred(.success)
-                    showRegenerateConfirm = true
-                }) {
-                    HStack {
-                        Text("Regenerate Future Image").font(.system(size: 16)).foregroundColor(SlateColor.ink)
-                        Spacer()
-                        Image(systemName: "arrow.clockwise").font(.system(size: 14)).foregroundColor(SlateColor.inkSoft)
-                    }.padding(18)
-                }
-            }
-
             settingGroup(title: "PRIVACY") {
                 settingToggleRow(title: "Photo Privacy", subtitle: "Only visible to you", isOn: $photoPrivacyEnabled)
                 // ── 계정 삭제 → 확인 다이얼로그 연결 ──
