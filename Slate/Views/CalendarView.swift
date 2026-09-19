@@ -443,11 +443,13 @@ final class RewardedAds {
     /// 전부 완료 시 true, 중간 이탈/실패 시 false.
     func showSequence(count: Int, progress: @escaping (Int) async -> Void) async -> Bool {
         #if canImport(GoogleMobileAds)
-        // TODO(AdMob): 여기서 GADRewardedAd를 count회 로드→present.
-        //   각 onUserEarnedReward에서 progress(누적) 호출, 마지막 성공 시 true.
-        //   광고 로드 실패/유저 이탈 시 false 반환(편집 잠금 유지).
-        //   SDK 추가 전까지는 아래 시뮬레이션을 사용.
-        return await simulate(count: count, progress: progress)
+        for i in 1...count {
+            guard let vc = await Self.rootViewController() else { return false }
+            let earned = await AdRunner().run(unitID: SlateAdConfig.rewardedUnitID, from: vc)
+            if !earned { return false }          // 로드 실패/이탈 → 잠금 유지
+            await progress(i)
+        }
+        return true
         #else
         return await simulate(count: count, progress: progress)
         #endif
@@ -460,7 +462,54 @@ final class RewardedAds {
         }
         return true
     }
+
+    #if canImport(GoogleMobileAds)
+    @MainActor
+    static func rootViewController() -> UIViewController? {
+        let scene = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first { $0.activationState == .foregroundActive } ?? (UIApplication.shared.connectedScenes.first as? UIWindowScene)
+        return scene?.windows.first(where: { $0.isKeyWindow })?.rootViewController
+    }
+    #endif
 }
+
+#if canImport(GoogleMobileAds)
+import GoogleMobileAds
+import UIKit
+
+/// 리워드 광고 1편 로드→표시→종료를 async로 감싸는 헬퍼.
+/// ⚠️ GoogleMobileAds SDK 버전(v11 기준)에 맞춰 작성 — SDK 추가 후 첫 빌드에서
+///    타입/메서드명이 다르면 컴파일 에러를 붙여줘, 그 버전에 맞게 바로 잡아줄게.
+private final class AdRunner: NSObject, FullScreenContentDelegate {
+    private var continuation: CheckedContinuation<Bool, Never>?
+    private var earned = false
+    private var keepAlive: AnyObject?
+
+    @MainActor
+    func run(unitID: String, from vc: UIViewController) async -> Bool {
+        do {
+            let ad = try await RewardedAd.load(with: unitID, request: Request())
+            ad.fullScreenContentDelegate = self
+            keepAlive = ad
+            earned = false
+            return await withCheckedContinuation { cont in
+                self.continuation = cont
+                ad.present(from: vc) { [weak self] in self?.earned = true }
+            }
+        } catch {
+            return false
+        }
+    }
+
+    func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
+        continuation?.resume(returning: earned); continuation = nil; keepAlive = nil
+    }
+    func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
+        continuation?.resume(returning: false); continuation = nil; keepAlive = nil
+    }
+}
+#endif
 
 /// SCR-06: 과거 기록 추가/수정 안내 + 광고 시청 게이트
 struct AdGateView: View {
@@ -470,7 +519,7 @@ struct AdGateView: View {
 
     @State private var watching = false
     @State private var watched = 0
-    private let total = 3
+    private let total = SlateAdConfig.rewardedCountForPastEdit
 
     private var dateText: String {
         date.formatted(.dateTime.month(.wide).day().year())

@@ -4,6 +4,9 @@ import AuthenticationServices
 #if canImport(FirebaseCore)
 import FirebaseCore
 #endif
+#if canImport(GoogleMobileAds)
+import GoogleMobileAds
+#endif
 
 @main
 struct SlateApp: App {
@@ -15,6 +18,9 @@ struct SlateApp: App {
         if Bundle.main.url(forResource: "GoogleService-Info", withExtension: "plist") != nil {
             FirebaseApp.configure()
         }
+        #endif
+        #if canImport(GoogleMobileAds)
+        MobileAds.shared.start(completionHandler: nil)
         #endif
     }
 
