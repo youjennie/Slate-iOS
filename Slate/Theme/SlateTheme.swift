@@ -87,8 +87,8 @@ enum SlateThemeID: String, CaseIterable, Identifiable {
         switch self {
         case .olive:
             leaf = Color(hex: "#C1C177"); leafDeep = Color(hex: "#8A9440"); leafSoft = Color(hex: "#EDEFDA")
-        case .sage:
-            leaf = Color(hex: "#8FB08A"); leafDeep = Color(hex: "#547A50"); leafSoft = Color(hex: "#DDE8DB")
+        case .sage:   // 2번 — 살짝 밝게
+            leaf = Color(hex: "#9CC096"); leafDeep = Color(hex: "#5E8A57"); leafSoft = Color(hex: "#E3EFE0")
         case .terracotta:
             leaf = Color(hex: "#D08A6A"); leafDeep = Color(hex: "#A05638"); leafSoft = Color(hex: "#F1DACD")
         case .blue:
@@ -123,8 +123,8 @@ final class ThemeManager: ObservableObject {
             themeID = forced
             return
         }
-        let raw = UserDefaults.standard.string(forKey: "slate_themeID") ?? SlateThemeID.olive.rawValue
-        themeID = SlateThemeID(rawValue: raw) ?? .olive
+        let raw = UserDefaults.standard.string(forKey: "slate_themeID") ?? SlateThemeID.sage.rawValue
+        themeID = SlateThemeID(rawValue: raw) ?? .sage
     }
 }
 
