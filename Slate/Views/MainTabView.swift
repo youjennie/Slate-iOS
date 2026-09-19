@@ -14,7 +14,7 @@ struct MainTabView: View {
         Button(action: { selectedTab = index }) {
             Image(systemName: icon)
                 .font(.system(size: 22))
-                .foregroundColor(selectedTab == index ? SlateColor.paper : Color.white.opacity(0.45))
+                .foregroundColor(selectedTab == index ? SlateColor.ink : SlateColor.inkFaint)
                 .frame(maxWidth: .infinity)
         }
     }
@@ -40,7 +40,8 @@ struct MainTabView: View {
             .background(
                 Capsule()
                     .fill(SlateColor.navBar)
-                    .shadow(color: SlateColor.ink.opacity(0.25), radius: 16, x: 0, y: 8)
+                    .overlay(Capsule().stroke(SlateColor.ink.opacity(0.06), lineWidth: 1))
+                    .shadow(color: SlateColor.ink.opacity(0.12), radius: 14, x: 0, y: 6)
             )
             .padding(.horizontal, 28)
             .padding(.top, 18)   // 가운데 카메라 버튼이 위로 떠도 공간 확보

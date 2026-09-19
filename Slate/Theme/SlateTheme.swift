@@ -75,7 +75,7 @@ enum SlateThemeID: String, CaseIterable, Identifiable {
         let ink       = Color(hex: "#232322")   // 근블랙 텍스트
         let inkSoft   = Color(hex: "#6E6E6A")   // 보조 텍스트(중간 회색)
         let inkFaint  = Color(hex: "#C7C7C3")   // 테두리·라인·비활성(연회색)
-        let navBar    = Color(hex: "#54534E")   // 하단 내비(살짝 회색빛 다크 그레이)
+        let navBar    = Color(hex: "#EAEAE6")   // 하단 내비(밝은 회색)
 
         // 카테고리 보조색 = 뉴트럴 그레이 (포인트색 하나만 튀게)
         let honey = Color(hex: "#C7C7C3"); let honeyDeep = Color(hex: "#8E8E8A")

@@ -196,48 +196,13 @@ struct CalendarView: View {
 struct CalendarHeaderView: View {
     let currentTime: Date
 
-    // TODO: 소셜 백엔드(Firebase) 연동 시 실제 미확인 알림 여부로 구동.
-    //       그 전까지는 가짜 배지를 띄우지 않도록 false.
-    @State private var hasNotification: Bool = false
-    @State private var animateGlow: Bool = false
-    
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
                 HStack {
-                    NavigationLink(destination: SocialFeedView()) {
-                        ZStack {
-                            if hasNotification {
-                                Circle()
-                                    .fill(
-                                        RadialGradient(
-                                            gradient: Gradient(colors: [
-                                                Color(white: 0.85).opacity(animateGlow ? 0.8 : 0.1),
-                                                Color.clear
-                                            ]),
-                                            center: .center,
-                                            startRadius: 2,
-                                            endRadius: 20
-                                        )
-                                    )
-                                    .frame(width: 40, height: 40)
-                                    .scaleEffect(animateGlow ? 1.1 : 1.0)
-                                    .onAppear {
-                                        withAnimation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true)) {
-                                            animateGlow = true
-                                        }
-                                    }
-                            }
-                            
-                            Image(systemName: hasNotification ? "bell.badge" : "bell")
-                                .font(.system(size: 17))
-                                .foregroundColor(SlateColor.ink)
-                        }
-                        .padding(.leading, 16)
-                    }
-                    
+                    // 소셜 피드는 v1에서 숨김 (SocialFeedView는 코드 휴면 유지, 추후 재노출)
                     Spacer()
-                
+
                     NavigationLink(destination: RecentlyDeletedView()) {
                         Image(systemName: "trash")
                             .font(.system(size: 18))
