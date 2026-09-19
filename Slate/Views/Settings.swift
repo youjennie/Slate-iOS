@@ -144,7 +144,7 @@ struct MySlateSettingsView: View {
                         Image(uiImage: image).resizable().scaledToFill()
                             .frame(width: 100, height: 100).clipShape(Circle())
                     } else {
-                        Text(initials).font(.system(size: 32, weight: .bold)).foregroundColor(.white)
+                        Text(initials).font(.system(size: 32, weight: .bold)).foregroundColor(SlateColor.ink)
                     }
                 }
                 .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5)

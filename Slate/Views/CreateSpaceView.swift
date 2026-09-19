@@ -171,7 +171,7 @@ struct CreateSpaceView: View {
         Button(action: handleCreateSpace) {
             Text(isFormValid ? "Create New Space" : "Go to Calendar")
                 .font(.system(size: 18, weight: .bold))
-                .foregroundColor(.white)
+                .foregroundColor(SlateColor.ink)
                 .frame(maxWidth: .infinity)
                 .frame(height: 60)
                 .background(RoundedRectangle(cornerRadius: 15).fill(isFormValid ? SlateColor.leaf : SlateColor.inkFaint.opacity(0.4)))

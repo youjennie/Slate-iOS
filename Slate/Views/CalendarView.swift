@@ -490,7 +490,7 @@ struct AdGateView: View {
                 Button(action: start) {
                     Text(watching ? "Watching…" : "Watch \(total) ads & continue")
                         .font(.slateSans(16, weight: .bold))
-                        .foregroundColor(SlateColor.paperSoft)
+                        .foregroundColor(SlateColor.ink)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 15)
                         .background(Capsule().fill(watching ? SlateColor.inkFaint : SlateColor.leaf))

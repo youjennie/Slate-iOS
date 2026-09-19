@@ -23,11 +23,11 @@ enum SampleData {
 
     private static let specs: [(name: String, current: String, future: String, color: UIColor, emoji: String)] = [
         ("Daily",   "Feeling a little stuck lately.", "Calm, consistent, present every day.",
-         UIColor(red: 0.76, green: 0.76, blue: 0.47, alpha: 1), "🌿"),
+         UIColor(red: 0.965, green: 0.851, blue: 0.431, alpha: 1), "🌿"),   // 버터(포인트)
         ("Workout", "Out of shape and low energy.",   "Strong, light, energetic.",
-         UIColor(red: 0.80, green: 0.72, blue: 0.42, alpha: 1), "☀️"),
+         UIColor(red: 0.839, green: 0.839, blue: 0.824, alpha: 1), "☀️"),   // 회색
         ("Reading", "No time to read these days.",    "A book a week, a quiet mind.",
-         UIColor(red: 0.78, green: 0.57, blue: 0.47, alpha: 1), "🍃"),
+         UIColor(red: 0.745, green: 0.745, blue: 0.725, alpha: 1), "🍃"),   // 회색
     ]
 
     /// 기존 데이터를 비우고 샘플을 채운다. (로그인/온보딩도 우회)
