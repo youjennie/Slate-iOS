@@ -174,7 +174,7 @@ struct DailyPhotoView: View {
                                 .frame(width: cellSize, height: cellSize)
                                 .overlay(
                                     VStack(spacing: 4) {
-                                        Text(emoji).font(.system(size: cellSize * 0.34))
+                                        Text(emoji).font(.system(size: cellSize * 0.27))
                                         if !record.memo.isEmpty {
                                             Text(record.memo)
                                                 .font(.slateSans(10))

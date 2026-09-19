@@ -354,7 +354,7 @@ struct CalendarCell: View {
                 // 사진 없는 기록: 버터 타일 + 선택 이모지
                 RoundedRectangle(cornerRadius: size * 0.15)
                     .fill(SlateColor.leafSoft)
-                    .overlay(Text(emoji ?? "").font(.system(size: size * 0.42)))
+                    .overlay(Text(emoji ?? "").font(.system(size: size * 0.34)))
             } else {
                 RoundedRectangle(cornerRadius: size * 0.15)
                     .fill(Color.white)

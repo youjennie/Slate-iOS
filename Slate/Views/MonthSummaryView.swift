@@ -97,7 +97,7 @@ struct SummaryCell: View {
             } else if hasEmoji {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(SlateColor.leafSoft)
-                    .overlay(Text(emoji ?? "").font(.system(size: 22)))
+                    .overlay(Text(emoji ?? "").font(.system(size: 18)))
             } else {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(SlateColor.inkFaint.opacity(0.05))
