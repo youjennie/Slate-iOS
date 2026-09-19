@@ -161,7 +161,14 @@ private struct MemoryTestHarness: View {
     }
     var body: some View {
         NavigationStack {
-            MonthShareDetailView(month: monthStart, records: records, category: "Daily")
+            VStack {
+                NavigationLink("Open Monthly Memory",
+                               destination: MonthShareDetailView(month: monthStart, records: records, category: "Daily"))
+                    .font(.slateSans(16, weight: .bold))
+                    .foregroundColor(SlateColor.ink)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .slatePaperBackground()
         }
     }
 }

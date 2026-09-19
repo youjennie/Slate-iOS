@@ -9,36 +9,52 @@ struct MonthShareDetailView: View {
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
-            VStack {
-                ScrollView {
-                    MonthSummaryView(month: month, records: records, category: category)
-                        .cornerRadius(20)
-                        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
-                        .padding()
-                }
-            }
-            .background(SlateColor.paper)
-            .navigationTitle("Share your Slate")
-            .navigationBarTitleDisplayMode(.inline)
-            .navigationBarBackButtonHidden(true)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
+        VStack(spacing: 0) {
+            // 커스텀 헤더 (시스템 nav bar 대신 — 부모가 bar를 숨겨도 뒤로가기 확실히 동작)
+            Text("Share your Slate")
+                .font(.slateSans(18, weight: .bold))
+                .foregroundColor(SlateColor.ink)
+                .frame(maxWidth: .infinity)
+                .frame(height: 56)
+                .overlay(alignment: .leading) {
                     Button(action: { dismiss() }) {
-                        Image(systemName: "chevron.left")
-                            .foregroundColor(SlateColor.ink)
-                    }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    if let renderedImage = renderCard() {
-                        ShareLink(item: renderedImage,
-                                  preview: SharePreview("\(month.formatted(.dateTime.month(.wide))) Slate", image: renderedImage)) {
-                            Image(systemName: "square.and.arrow.up")
+                        ZStack {
+                            Circle().fill(SlateColor.sand).frame(width: 42, height: 42)
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 18, weight: .bold))
                                 .foregroundColor(SlateColor.ink)
                         }
                     }
+                    .padding(.leading, 16)
                 }
+                .overlay(alignment: .trailing) {
+                    if let renderedImage = renderCard() {
+                        ShareLink(item: renderedImage,
+                                  preview: SharePreview("\(month.formatted(.dateTime.month(.wide))) Slate", image: renderedImage)) {
+                            ZStack {
+                                Circle().fill(SlateColor.sand).frame(width: 42, height: 42)
+                                Image(systemName: "square.and.arrow.up")
+                                    .font(.system(size: 17, weight: .semibold))
+                                    .foregroundColor(SlateColor.ink)
+                            }
+                        }
+                        .padding(.trailing, 16)
+                    }
+                }
+                .background(SlateColor.paperSoft)
+                .overlay(alignment: .bottom) { Rectangle().fill(SlateColor.ink.opacity(0.08)).frame(height: 1) }
+
+            ScrollView {
+                MonthSummaryView(month: month, records: records, category: category)
+                    .cornerRadius(20)
+                    .overlay(RoundedRectangle(cornerRadius: 20).stroke(SlateColor.ink.opacity(0.08), lineWidth: 1))
+                    .padding()
             }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .slatePaperBackground()
+        .navigationBarBackButtonHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
     }
     
     @MainActor
