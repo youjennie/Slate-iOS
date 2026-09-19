@@ -49,12 +49,13 @@ struct SlateWordmark: View {
 /// 디자인 시스템: **흰 배경 + 회색 테두리 + 단일 포인트 컬러.**
 /// 배경/텍스트/테두리는 전 테마 공통(뉴트럴), 사용자는 "포인트 컬러 하나"만 고른다.
 enum SlateThemeID: String, CaseIterable, Identifiable {
-    case olive, sage, terracotta, blue
+    case butter, sage, olive, terracotta, blue
     var id: String { rawValue }
     var label: String {
         switch self {
-        case .olive:      return "Olive"
+        case .butter:     return "Butter"
         case .sage:       return "Sage"
+        case .olive:      return "Olive"
         case .terracotta: return "Terracotta"
         case .blue:       return "Blue"
         }
@@ -85,6 +86,8 @@ enum SlateThemeID: String, CaseIterable, Identifiable {
         // ── 단일 포인트 컬러만 테마별로 달라진다 ──
         let leaf, leafDeep, leafSoft: Color
         switch self {
+        case .butter:   // 밝은 버터 노랑
+            leaf = Color(hex: "#F6D96E"); leafDeep = Color(hex: "#C99E2E"); leafSoft = Color(hex: "#FBF2CF")
         case .olive:
             leaf = Color(hex: "#C1C177"); leafDeep = Color(hex: "#8A9440"); leafSoft = Color(hex: "#EDEFDA")
         case .sage:   // 2번 — 살짝 밝게
@@ -123,8 +126,8 @@ final class ThemeManager: ObservableObject {
             themeID = forced
             return
         }
-        let raw = UserDefaults.standard.string(forKey: "slate_themeID") ?? SlateThemeID.sage.rawValue
-        themeID = SlateThemeID(rawValue: raw) ?? .sage
+        let raw = UserDefaults.standard.string(forKey: "slate_themeID") ?? SlateThemeID.butter.rawValue
+        themeID = SlateThemeID(rawValue: raw) ?? .butter
     }
 }
 
