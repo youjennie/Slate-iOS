@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // MARK: - Color hex helper
 extension Color {
@@ -161,19 +162,38 @@ enum SlateColor {
     }
 }
 
-// MARK: - Typography
+// MARK: - Typography (브랜드: Pretendard, 없으면 시스템 고딕 폴백)
 extension Font {
-    /// 손글씨 — 종이 낙서 컨셉. 브랜드/헤드라인의 "개성" 보이스 (로고 톤과 매칭)
-    static func slateHand(_ size: CGFloat, weight: Font.Weight = .bold) -> Font {
-        .custom("Bradley Hand", size: size).weight(weight)
+    /// Pretendard 번들 여부 (Regular 등록 확인). 미번들이면 시스템 폰트 사용.
+    /// Xcode에 Pretendard-Regular/Medium/Bold(.otf) 추가 + Info.plist UIAppFonts 등록 시 자동 활성화.
+    private static let pretendardAvailable: Bool = UIFont(name: "Pretendard-Regular", size: 12) != nil
+
+    private static func pretendardName(_ weight: Font.Weight) -> String {
+        switch weight {
+        case .black, .heavy:        return "Pretendard-Bold"
+        case .bold:                 return "Pretendard-Bold"
+        case .semibold:             return "Pretendard-SemiBold"
+        case .medium:               return "Pretendard-Medium"
+        case .light, .thin, .ultraLight: return "Pretendard-Light"
+        default:                    return "Pretendard-Regular"
+        }
     }
-    /// 에디토리얼 세리프 (보조)
-    static func slateSerif(_ size: CGFloat, weight: Font.Weight = .semibold) -> Font {
-        .system(size: size, weight: weight, design: .serif)
-    }
-    /// 본문·UI 산세리프
+
+    /// 본문·UI 기본 폰트 (Pretendard → 시스템 고딕)
     static func slateSans(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        .system(size: size, weight: weight)
+        if pretendardAvailable { return .custom(pretendardName(weight), size: size) }
+        return .system(size: size, weight: weight)
+    }
+
+    /// 헤드라인/타이틀 보이스 — 브랜드는 고딕이므로 Pretendard(SemiBold) 우선, 폴백만 세리프
+    static func slateSerif(_ size: CGFloat, weight: Font.Weight = .semibold) -> Font {
+        if pretendardAvailable { return .custom(pretendardName(weight), size: size) }
+        return .system(size: size, weight: weight, design: .serif)
+    }
+
+    /// (레거시) 손글씨 — 브랜드 고딕 전환으로 사실상 미사용. Pretendard/시스템으로 폴백.
+    static func slateHand(_ size: CGFloat, weight: Font.Weight = .bold) -> Font {
+        slateSans(size, weight: weight)
     }
 }
 

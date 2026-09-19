@@ -18,7 +18,8 @@ we handle and how.
   access. We do **not** receive or store your real Apple ID password. If you use
   Apple's "Hide My Email," we only ever see the relay address.
 
-We do **not** use third‑party analytics, advertising, or tracking SDKs.
+We do **not** use third‑party analytics or tracking SDKs. We show rewarded video ads
+only in one place (see **Advertising** below).
 
 ## How your data is used
 
@@ -33,15 +34,17 @@ By default your photos are **private and stay on your device**. The app includes
 the social feed if you explicitly turn Photo Privacy **off**. You can change this at
 any time in **Settings ▸ Photo Privacy**.
 
-## Optional features that use third parties
+## Advertising
 
-These features are **off unless you enable them**, and the app works fully without them:
+Adding or editing a record on a **past date** requires watching short rewarded video
+ads. These ads are served by **Google AdMob**. To show ads, AdMob may collect device
+information and identifiers as described in
+[Google's Privacy & Terms](https://policies.google.com/technologies/ads). Your photos,
+memos, and journal content are **never** shared with the ad provider. Recording on the
+current day is always free and shows no ads.
 
-- **AI "future self" image (optional).** If you enable this feature, the photo you choose
-  is sent to **Google's Gemini API** to generate an image. The image is processed to
-  produce the result and is subject to
-  [Google's Privacy Policy](https://policies.google.com/privacy). We do not send this
-  data anywhere else.
+## Optional features (future)
+
 - **Social feed / cloud sync (optional, future).** If a future version connects to a
   backend (e.g., Firebase), only content you choose to share — and never private photos
   — would be uploaded. This policy will be updated before any such feature is enabled.
