@@ -31,9 +31,6 @@ struct MonthSummaryView: View {
                 Text(month.formatted(.dateTime.month(.wide)))
                     .font(.slateSans(36, weight: .black))
                     .foregroundColor(SlateColor.ink)
-                Text("\(SpaceManager.shared.userName.isEmpty ? "My" : SpaceManager.shared.userName) Slate Moments")
-                    .font(.system(size: 15))
-                    .foregroundColor(SlateColor.inkSoft)
             }
             .frame(maxWidth: .infinity, alignment: .center)
             .padding(.top, 18)
