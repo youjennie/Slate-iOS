@@ -22,29 +22,24 @@ struct MonthSummaryView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // (A) 워드마크 및 월 타이틀 섹션
-            VStack(alignment: .leading, spacing: 2) {
-                SlateWordmark(size: 26)
+            // (A) 워드마크 및 월 타이틀 섹션 (컴팩트)
+            VStack(spacing: 2) {
+                SlateWordmark(size: 22)
                 Text(month.formatted(.dateTime.month(.wide)))
-                    .font(.slateSans(54, weight: .black))
+                    .font(.slateSans(36, weight: .black))
                     .foregroundColor(SlateColor.ink)
+                Text("\(SpaceManager.shared.userName.isEmpty ? "My" : SpaceManager.shared.userName) Slate Moments")
+                    .font(.system(size: 15))
+                    .foregroundColor(SlateColor.inkSoft)
             }
             .frame(maxWidth: .infinity, alignment: .center)
-            .padding(.top, 20)
-            .padding(.bottom, 20)
+            .padding(.top, 18)
+            .padding(.bottom, 14)
 
-            Text("\(SpaceManager.shared.userName.isEmpty ? "My" : SpaceManager.shared.userName) Slate Moments")
-                    .font(.system(size: 18))
-                    .foregroundColor(SlateColor.inkSoft)
-                    .padding(.leading, 5)
-                    .offset(y: 20)
-                    .padding(.bottom,20)
-            
-            // (B) 5열 그리드 이미지 요약
-            LazyVGrid(columns: columns, spacing: 7) {
+            // (B) 5열 그리드 요약 (셀 축소)
+            LazyVGrid(columns: columns, spacing: 6) {
                 ForEach(1...daysInMonth, id: \.self) { day in
                     if let date = Calendar.current.date(byAdding: .day, value: day-1, to: month) {
-                        // ── isDeleted 필터링 추가 ──
                         let record = records.first {
                             Calendar.current.isDate($0.date, inSameDayAs: date) && !$0.isDeleted
                         }
@@ -52,37 +47,32 @@ struct MonthSummaryView: View {
                     }
                 }
             }
-            .padding(.horizontal, 30)
-            .padding(.top, 20)
-            .padding(.bottom, 40)
+            .padding(.horizontal, 52)
+            .padding(.top, 10)
+            .padding(.bottom, 20)
 
             // (C) 하단 데이터 정보 & 프로그레스 바
-            VStack(spacing: 15) {
+            VStack(spacing: 10) {
                 HStack(alignment: .lastTextBaseline, spacing: 5) {
                     Text("\(recordedDaysCount)")
-                        .font(.system(size: 23, weight: .bold))
+                        .font(.system(size: 20, weight: .bold))
                         .foregroundColor(SlateColor.inkSoft)
-
                     Text("/\(daysInMonth) Days with Slate")
-                        .font(.system(size: 20))
+                        .font(.system(size: 16))
                         .foregroundColor(SlateColor.inkSoft)
                 }
-                
+
                 GeometryReader { geo in
                     ZStack(alignment: .leading) {
-                        Capsule()
-                            .fill(SlateColor.inkFaint.opacity(0.1))
-                            .frame(height: 12)
-                        
-                        Capsule()
-                            .fill(SlateColor.leafDeep)
-                            .frame(width: geo.size.width * CGFloat(recordedDaysCount) / CGFloat(max(daysInMonth, 1)), height: 12)
+                        Capsule().fill(SlateColor.inkFaint.opacity(0.15)).frame(height: 10)
+                        Capsule().fill(SlateColor.leafDeep)
+                            .frame(width: geo.size.width * CGFloat(recordedDaysCount) / CGFloat(max(daysInMonth, 1)), height: 10)
                     }
                 }
-                .frame(height: 12)
-                .padding(.horizontal, 40)
+                .frame(height: 10)
+                .padding(.horizontal, 52)
             }
-            .padding(.bottom, 60)
+            .padding(.bottom, 26)
         }
         .frame(width: Self.cardWidth)
         .background(Color.white)   // 공유 이미지용 — 테마와 무관하게 항상 흰 배경

@@ -56,6 +56,9 @@ struct SlateApp: App {
                 if ProcessInfo.processInfo.arguments.contains("-openFeed") {
                     // 로컬 테스트용: 소셜 피드 바로 열기 (릴리즈 영향 없음)
                     FeedTestHarness()
+                } else if ProcessInfo.processInfo.arguments.contains("-openMemory") {
+                    // 로컬 테스트용: Monthly Memory(공유 카드) 바로 열기
+                    MemoryTestHarness()
                 } else if spaceManager.isLoggedIn {
                     MainTabView()
                         .onAppear {
@@ -145,6 +148,20 @@ private struct FeedTestHarness: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .slatePaperBackground()
+        }
+    }
+}
+
+/// 로컬 테스트 하니스 — `-openMemory`로 Monthly Memory 공유 카드 바로 열기
+private struct MemoryTestHarness: View {
+    @Query(filter: #Predicate<PhotoRecord> { !$0.isDeleted }, sort: \PhotoRecord.date) private var records: [PhotoRecord]
+    private var monthStart: Date {
+        let cal = Calendar.current
+        return cal.date(from: cal.dateComponents([.year, .month], from: Date())) ?? Date()
+    }
+    var body: some View {
+        NavigationStack {
+            MonthShareDetailView(month: monthStart, records: records, category: "Daily")
         }
     }
 }
