@@ -31,6 +31,8 @@ struct CalendarView: View {
     @State private var targetDate: Date = Date()
     // ── UC-04: 과거 날짜 편집 게이트 대상 (광고 3회 후 편집 허용) ──
     @State private var pastEditTarget: PastEditTarget? = nil
+    // 사진 없이 텍스트+이모지 기록 컴포저
+    @State private var showNoteComposer = false
 
     let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
@@ -107,7 +109,13 @@ struct CalendarView: View {
             .confirmationDialog("Add your moment", isPresented: $showActionSheet, titleVisibility: .visible) {
                 Button("Take a Photo") { showCustomCamera = true }
                 Button("Choose from Library") { sourceType = .photoLibrary; showImagePicker = true }
+                Button("Write a note (no photo)") { showNoteComposer = true }
                 Button("Cancel", role: .cancel) { }
+            }
+            .sheet(isPresented: $showNoteComposer) {
+                NoteComposerView(date: targetDate) { emoji, memo in
+                    saveNote(emoji: emoji, memo: memo)
+                }
             }
             .sheet(isPresented: $showImagePicker) {
                 ImagePicker(selectedImages: $inputImages, detectedDate: photoDate ?? targetDate)
@@ -154,6 +162,19 @@ struct CalendarView: View {
         .navigationBarBackButtonHidden(true)
     }
     
+    // 사진 없이 텍스트+이모지 기록 저장
+    private func saveNote(emoji: String, memo: String) {
+        let record = PhotoRecord(
+            date: targetDate,
+            memo: memo,
+            imageData: nil,
+            spaceTag: selectedCategory,
+            emoji: emoji.isEmpty ? "📝" : emoji
+        )
+        modelContext.insert(record)
+        try? modelContext.save()
+    }
+
     // 사진 저장 로직
     private func saveSelectedImages() {
         for img in inputImages {
@@ -257,11 +278,8 @@ struct CalendarCategorySelector: View {
                 }
                 ForEach(spaceManager.categories, id: \.self) { category in
                     Button(action: { selectedCategory = category }) {
-                        HStack(spacing: 5) {
-                            Text(SlateEmoji.forSpace(named: category)).font(.system(size: 13))
-                            Text(category)
-                                .font(.system(size: 16, weight: selectedCategory == category ? .bold : .medium))
-                        }
+                        Text(category)
+                            .font(.system(size: 16, weight: selectedCategory == category ? .bold : .medium))
                         .foregroundColor(selectedCategory == category ? SlateColor.ink : SlateColor.inkFaint)
                         .padding(.bottom, 5)
                         .overlay(Rectangle().fill(selectedCategory == category ? SlateColor.leafDeep : Color.clear).frame(height: 2).offset(y: 5), alignment: .bottom)
@@ -336,7 +354,8 @@ struct MonthSectionView: View {
                         } else {
                             NavigationLink(destination: DailyPhotoView(date: date, selectedCategory: selectedCategory)) {
                                 CalendarCell(day: day, size: cellSize, photoCount: recordsForDate.count,
-                                            firstImage: recordsForDate.first?.thumbnail(maxPixel: cellSize))
+                                            firstImage: recordsForDate.first?.thumbnail(maxPixel: cellSize),
+                                            emoji: recordsForDate.first?.emoji)
                             }
                             .buttonStyle(PlainButtonStyle())
                         }
@@ -354,7 +373,10 @@ struct CalendarCell: View {
     let size: CGFloat
     let photoCount: Int
     let firstImage: UIImage?
-    
+    var emoji: String? = nil
+
+    private var hasEmoji: Bool { firstImage == nil && (emoji?.isEmpty == false) }
+
     var body: some View {
         ZStack(alignment: .topLeading) {
             if let uiImage = firstImage {
@@ -363,6 +385,11 @@ struct CalendarCell: View {
                     .scaledToFill()
                     .frame(width: size, height: size)
                     .clipShape(RoundedRectangle(cornerRadius: size * 0.15))
+            } else if hasEmoji {
+                // 사진 없는 기록: 버터 타일 + 선택 이모지
+                RoundedRectangle(cornerRadius: size * 0.15)
+                    .fill(SlateColor.leafSoft)
+                    .overlay(Text(emoji ?? "").font(.system(size: size * 0.42)))
             } else {
                 RoundedRectangle(cornerRadius: size * 0.15)
                     .fill(Color.white)
@@ -370,11 +397,11 @@ struct CalendarCell: View {
                         .foregroundColor(SlateColor.inkFaint.opacity(0.1))
                         .font(.system(size: size * 0.3)))
             }
-            
+
             Text("\(day)")
                 .font(.system(size: size * 0.18, weight: .bold))
                 .padding(size * 0.1)
-                .foregroundColor(firstImage == nil ? SlateColor.inkFaint.opacity(0.5) : .white)
+                .foregroundColor(firstImage != nil ? .white : (hasEmoji ? SlateColor.ink : SlateColor.inkFaint.opacity(0.5)))
             
             if photoCount > 1 {
                 VStack {
@@ -528,6 +555,81 @@ struct AdGateView: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - [7] 노트 컴포저 (사진 없이 텍스트 + 이모지 기록)
+struct NoteComposerView: View {
+    let date: Date
+    var onSave: (_ emoji: String, _ memo: String) -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var memo = ""
+    @State private var selected = "📝"
+
+    private let emojis = ["📝","✅","⭐️","🔥","💪","📚","🏃","🧘",
+                          "🍳","☕️","🎨","🎵","💤","💡","🎯","🧩",
+                          "❤️","🌸","🌊","⛅️","🌙","🍎","🕯️","🪴",
+                          "🐾","✈️","📸","🎬","🧺","🛁","💧","🏆"]
+    private let cols = Array(repeating: GridItem(.flexible(), spacing: 12), count: 6)
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // 헤더
+            HStack {
+                Button("Cancel") { dismiss() }
+                    .foregroundColor(SlateColor.inkSoft)
+                Spacer()
+                Text("New note").font(.slateSans(17, weight: .bold)).foregroundColor(SlateColor.ink)
+                Spacer()
+                Button("Save") {
+                    onSave(selected, memo.trimmingCharacters(in: .whitespacesAndNewlines))
+                    dismiss()
+                }
+                .font(.slateSans(16, weight: .bold))
+                .foregroundColor(SlateColor.leafDeep)
+            }
+            .padding()
+            .background(SlateColor.paperSoft)
+            .overlay(alignment: .bottom) { Rectangle().fill(SlateColor.ink.opacity(0.08)).frame(height: 1) }
+
+            ScrollView {
+                VStack(spacing: 22) {
+                    // 선택한 이모지 미리보기
+                    Text(selected)
+                        .font(.system(size: 60))
+                        .frame(width: 108, height: 108)
+                        .background(Circle().fill(SlateColor.leafSoft))
+                        .padding(.top, 8)
+
+                    // 메모
+                    TextField("Write a note…", text: $memo, axis: .vertical)
+                        .font(.slateSans(15))
+                        .foregroundColor(SlateColor.ink)
+                        .padding(14)
+                        .frame(minHeight: 80, alignment: .top)
+                        .background(RoundedRectangle(cornerRadius: 14).fill(SlateColor.paperDeep))
+                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(SlateColor.inkFaint.opacity(0.5), lineWidth: 1))
+                        .padding(.horizontal, 20)
+
+                    // 이모지 선택 그리드
+                    LazyVGrid(columns: cols, spacing: 12) {
+                        ForEach(emojis, id: \.self) { e in
+                            Button { selected = e } label: {
+                                Text(e).font(.system(size: 26))
+                                    .frame(width: 44, height: 44)
+                                    .background(Circle().fill(selected == e ? SlateColor.leafSoft : SlateColor.paperDeep))
+                                    .overlay(Circle().stroke(selected == e ? SlateColor.leafDeep : Color.clear, lineWidth: 2))
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 24)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .slatePaperBackground()
     }
 }
 

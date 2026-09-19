@@ -16,7 +16,8 @@ final class PhotoRecord {
     var deletedAt: Date?      // 삭제 시점 (30일 자동 정리용)
     var createdAt: Date       // 생성 시점 (동기화용)
     var remoteURL: String?    // Firebase Storage URL (서버 백업용)
-    
+    var emoji: String?        // 이미지 없는 텍스트 기록의 대표 이모지 (사용자 선택)
+
     init(
         date: Date = Date(),
         memo: String = "",
@@ -24,7 +25,8 @@ final class PhotoRecord {
         spaceTag: String = "Daily",
         isDeleted: Bool = false,
         deletedAt: Date? = nil,
-        remoteURL: String? = nil
+        remoteURL: String? = nil,
+        emoji: String? = nil
     ) {
         self.id = UUID()
         self.date = date
@@ -35,6 +37,7 @@ final class PhotoRecord {
         self.deletedAt = deletedAt
         self.createdAt = Date()
         self.remoteURL = remoteURL
+        self.emoji = emoji
     }
 }
 

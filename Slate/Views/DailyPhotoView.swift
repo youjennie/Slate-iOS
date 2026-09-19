@@ -18,6 +18,7 @@ struct DailyPhotoView: View {
     @State private var showImagePicker = false
     @State private var showCustomCamera = false
     @State private var showActionSheet = false
+    @State private var showNoteComposer = false
     @State private var selectedImages: [UIImage] = []
     @State private var targetDate: Date = Date()
     @State private var currentTime = Date()
@@ -65,6 +66,7 @@ struct DailyPhotoView: View {
         .confirmationDialog("Add your moment", isPresented: $showActionSheet, titleVisibility: .visible) {
             Button("Take a Photo") { showCustomCamera = true }
             Button("Choose from Library") { showImagePicker = true }
+            Button("Write a note (no photo)") { showNoteComposer = true }
             Button("Cancel", role: .cancel) { }
         }
         .sheet(isPresented: $showImagePicker) {
@@ -73,10 +75,29 @@ struct DailyPhotoView: View {
                     saveImages()
                 }
         }
+        .sheet(isPresented: $showNoteComposer) {
+            NoteComposerView(date: targetDate) { emoji, memo in
+                let record = PhotoRecord(date: targetDate, memo: memo, imageData: nil,
+                                         spaceTag: selectedCategory,
+                                         emoji: emoji.isEmpty ? "📝" : emoji)
+                modelContext.insert(record)
+                try? modelContext.save()
+            }
+        }
         .fullScreenCover(isPresented: $showCustomCamera) {
             CameraView(selectedCategory: selectedCategory)
                 .environmentObject(SpaceManager.shared)
         }
+    }
+
+    // 사진/이모지 타일 공통 삭제 버튼
+    @ViewBuilder
+    private func deleteButton(_ record: PhotoRecord) -> some View {
+        Button(action: { softDeleteRecord(record) }) {
+            Image(systemName: "xmark")
+                .font(.system(size: 10, weight: .bold)).foregroundColor(.white)
+                .padding(6).background(SlateColor.ink.opacity(0.45)).clipShape(Circle())
+        }.padding(6)
     }
 
     /// 캘린더에서 클릭한 날짜(date)로 스크롤 — 오늘이 아닌 전달받은 날짜 기준
@@ -98,10 +119,7 @@ struct DailyPhotoView: View {
                 Image(systemName: "chevron.left").font(.system(size: 18, weight: .bold)).foregroundColor(SlateColor.ink)
             }
             Spacer()
-            HStack(spacing: 7) {
-                Text(SlateEmoji.forSpace(named: selectedCategory)).font(.system(size: 16))
-                Text("\(selectedCategory) Feed").font(.slateSans(17, weight: .bold)).foregroundColor(SlateColor.ink)
-            }
+            Text("\(selectedCategory) Feed").font(.slateSans(17, weight: .bold)).foregroundColor(SlateColor.ink)
             Spacer()
             NavigationLink(destination: RecentlyDeletedView()) {
                 Image(systemName: "trash").font(.system(size: 17)).foregroundColor(SlateColor.inkSoft)
@@ -146,11 +164,28 @@ struct DailyPhotoView: View {
                             Image(uiImage: uiImage).resizable().scaledToFill()
                                 .frame(width: cellSize, height: cellSize)
                                 .clipShape(RoundedRectangle(cornerRadius: SlateRadius.md))
-                            Button(action: { softDeleteRecord(record) }) {
-                                Image(systemName: "xmark")
-                                    .font(.system(size: 10, weight: .bold)).foregroundColor(.white)
-                                    .padding(6).background(SlateColor.ink.opacity(0.45)).clipShape(Circle())
-                            }.padding(6)
+                            deleteButton(record)
+                        }
+                    } else if let emoji = record.emoji, !emoji.isEmpty {
+                        // 사진 없는 기록: 버터 타일 + 이모지 (+ 메모 있으면 하단에)
+                        ZStack(alignment: .topTrailing) {
+                            RoundedRectangle(cornerRadius: SlateRadius.md)
+                                .fill(SlateColor.leafSoft)
+                                .frame(width: cellSize, height: cellSize)
+                                .overlay(
+                                    VStack(spacing: 4) {
+                                        Text(emoji).font(.system(size: cellSize * 0.34))
+                                        if !record.memo.isEmpty {
+                                            Text(record.memo)
+                                                .font(.slateSans(10))
+                                                .foregroundColor(SlateColor.inkSoft)
+                                                .lineLimit(2)
+                                                .multilineTextAlignment(.center)
+                                                .padding(.horizontal, 6)
+                                        }
+                                    }
+                                )
+                            deleteButton(record)
                         }
                     }
                 }

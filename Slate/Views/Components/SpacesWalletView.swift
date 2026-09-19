@@ -80,8 +80,6 @@ struct SpacesWalletView: View {
 
         return HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 6) {
-                Text(SlateEmoji.forSpace(named: space.name))
-                    .font(.system(size: 26))
                 Text(space.name)
                     .font(.slateSans(18, weight: .bold))
                     .foregroundColor(onColor)

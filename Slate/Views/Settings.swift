@@ -236,7 +236,7 @@ struct MySlateSettingsView: View {
         return VStack(spacing: 10) {
             ZStack(alignment: .topTrailing) {
                 StickerBadge(
-                    emoji: SlateEmoji.forSpace(named: space.name),
+                    emoji: String(space.name.prefix(1)).uppercased(),   // 이모지 대신 이니셜
                     label: "",
                     color: color,
                     variant: index,
