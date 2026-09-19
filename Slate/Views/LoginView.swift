@@ -11,12 +11,13 @@ struct LoginView: View {
             VStack(spacing: 15) {
                 Spacer()
 
-                // 로고 이미지
-                Image("login_logo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: 300)
-                    .padding(.horizontal, 40)
+                // 텍스트 워드마크 + 슬로건
+                VStack(spacing: 12) {
+                    SlateWordmark(size: 60)
+                    Text(SlateBrand.taglineEN)
+                        .font(.slateSans(15))
+                        .foregroundColor(SlateColor.inkSoft)
+                }
 
                 Spacer()
 

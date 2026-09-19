@@ -22,14 +22,9 @@ struct MonthSummaryView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // (A) 로고 및 월 타이틀 섹션
-            VStack(alignment: .leading, spacing: -60) {
-                Image("name_logo")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 140)
-                    .padding(.leading, -27)
-                
+            // (A) 워드마크 및 월 타이틀 섹션
+            VStack(alignment: .leading, spacing: 2) {
+                SlateWordmark(size: 26)
                 Text(month.formatted(.dateTime.month(.wide)))
                     .font(.slateSans(54, weight: .black))
                     .foregroundColor(SlateColor.ink)

@@ -117,12 +117,8 @@ struct MySlateView: View {
 
                     // 1. 브랜드 히어로 — 로고 + 슬로건 (헤리티지 톤)
                     VStack(spacing: 10) {
-                        Image("name_logo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 148)
-                            .padding(.bottom, -44)
-                            .padding(.top, -4)
+                        SlateWordmark(size: 40)
+                            .padding(.bottom, 2)
 
                         Text(SlateBrand.taglineEN)
                             .font(.slateSerif(19, weight: .semibold))

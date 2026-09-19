@@ -15,10 +15,7 @@ struct OnboardingView: View {
         VStack(spacing: 40) {
             Spacer()
 
-            Image("name_logo")
-                .resizable()
-                .scaledToFit()
-                .frame(maxWidth: 250)
+            SlateWordmark(size: 52)
 
             VStack(spacing: 20) {
                 Text("What should we call you?")
